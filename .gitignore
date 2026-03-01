@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Keep SSL certs private
+*.pem
+cert.pem
+key.pem
+# Generated output
+checked_playlists.txt
+playlist_urls_only.txt

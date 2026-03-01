@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Playlist Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2d2d2d;
+      --text: #e8e8e8;
+      --text-muted: #888;
+      --accent: #7c3aed;
+      --accent-hover: #8b5cf6;
+      --success: #22c55e;
+      --link: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem 0;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab {
+      padding: 0.6rem 1.2rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .tab:hover { color: var(--text); border-color: #444; }
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      font-family: inherit;
+      font-size: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+    }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .row .form-group { flex: 1; min-width: 140px; }
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .checkbox-wrap input { width: auto; }
+    .btn {
+      padding: 0.7rem 1.4rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .loading {
+      margin-top: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .loading::after {
+      content: '';
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+    .error {
+      margin-top: 1rem;
+      padding: 0.9rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 0.9rem;
+    }
+    .results { margin-top: 2rem; }
+    .section {
+      margin-bottom: 2rem;
+    }
+    .section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 0.75rem 0;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section h2 .count {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+    .card-list { list-style: none; padding: 0; margin: 0; }
+    .card {
+      padding: 0.85rem 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    .card a {
+      color: var(--link);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .card a:hover { text-decoration: underline; }
+    .card .title { font-weight: 500; margin-bottom: 0.2rem; }
+    .card .meta { font-size: 0.85rem; color: var(--text-muted); }
+    .card .tracks-found { font-size: 0.8rem; color: var(--success); margin-top: 0.25rem; }
+    .url-list {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+    }
+    .url-list a { word-break: break-all; }
+    .summary {
+      padding: 1rem;
+      background: var(--surface);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .summary strong { color: var(--text); }
+    .exact-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      background: var(--surface);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .badge-exact {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(124, 58, 237, 0.2);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      margin-left: 0.5rem;
+    }
+    .hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify Playlist Finder</h1>
+    <p class="subtitle">Find playlists and users that have your music (or any song or album) on Spotify. Use <code class="exact-hint">"quotes"</code> for exact phrase match.</p>
+
+    <div class="tabs">
+      <button type="button" class="tab active" data-panel="artist">By artist</button>
+      <button type="button" class="tab" data-panel="song">By song</button>
+      <button type="button" class="tab" data-panel="album">By album</button>
+    </div>
+
+    <div id="panel-artist" class="panel active">
+      <form id="form-artist">
+        <div class="form-group">
+          <label for="artist">Artist name</label>
+          <input type="text" id="artist" name="artist" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+          <div class="hint">Wrap in double quotes for exact match only (e.g. <code class="exact-hint">"Phil McAndrew"</code>).</div>
+        </div>
+        <div class="form-group">
+          <label for="track">Optional: specific track name</label>
+          <input type="text" id="track" name="track" placeholder="e.g. Free">
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="max-artist">Max playlists to check</label>
+            <input type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200">
+          </div>
+        </div>
+        <div class="checkbox-wrap">
+          <input type="checkbox" id="include-checked-artist" name="include_checked_playlists">
+          <label for="include-checked-artist">Include list of all checked playlist URLs</label>
+        </div>
+        <button type="submit" class="btn" id="btn-artist">Search</button>
+      </form>
+    </div>
+
+    <div id="panel-song" class="panel">
+      <form id="form-song">
+        <div class="form-group">
+          <label for="song">Song: track name, "Artist - Track", or Spotify track URL</label>
+          <input type="text" id="song" name="song" placeholder='e.g. Blinding Lights or "Blinding Lights"'>
+
+          <div class="hint">Use double quotes for exact phrase match (e.g. <code class="exact-hint">"Phil McAndrew - Free"</code>).</div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="max-song">Max playlists to check</label>
+            <input type="number" id="max-song" name="max_playlists" value="50" min="10" max="200">
+          </div>
+        </div>
+        <div class="checkbox-wrap">
+          <input type="checkbox" id="include-checked-song" name="include_checked_playlists">
+          <label for="include-checked-song">Include list of all checked playlist URLs</label>
+        </div>
+        <button type="submit" class="btn" id="btn-song">Search</button>
+      </form>
+    </div>
+
+    <div id="panel-album" class="panel">
+      <form id="form-album">
+        <div class="form-group">
+          <label for="album">Album: name, "Artist - Album", or Spotify album URL</label>
+          <input type="text" id="album" name="album" placeholder='e.g. Free or "Phil McAndrew - Free"'>
+
+          <div class="hint">Use double quotes for exact album name match (e.g. <code class="exact-hint">"Free"</code>).</div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label for="max-album">Max playlists to check</label>
+            <input type="number" id="max-album" name="max_playlists" value="50" min="10" max="200">
+          </div>
+        </div>
+        <div class="checkbox-wrap">
+          <input type="checkbox" id="include-checked-album" name="include_checked_playlists">
+          <label for="include-checked-album">Include list of all checked playlist URLs</label>
+        </div>
+        <button type="submit" class="btn" id="btn-album">Search</button>
+      </form>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">Searching Spotify</div>
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="results" class="results" style="display: none;"></div>
+  </div>
+
+  <script>
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const resultsEl = document.getElementById('results');
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+        errorEl.style.display = 'none';
+        resultsEl.style.display = 'none';
+      });
+    });
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+      resultsEl.style.display = 'none';
+    }
+    function hideError() {
+      errorEl.style.display = 'none';
+    }
+
+    function renderResult(data) {
+      hideError();
+      let html = '';
+
+      if ((data.mode === 'song' || data.mode === 'album') && (data.track_infos?.length || data.album_infos?.length)) {
+        const heading = data.mode === 'album' ? 'References to this album' : 'References to this song';
+        html += '<div class="section"><h2>' + escapeHtml(heading) + '</h2>';
+        if (data.album_infos?.length) {
+          html += '<h3 style="font-size:0.95rem;margin:0 0 0.5rem 0;">Album(s)</h3><ul class="card-list">';
+          data.album_infos.forEach(a => {
+            html += `<li class="card"><div class="title">${escapeHtml(a.name)} — ${escapeHtml(a.artist || '')}</div><a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.url)}</a></li>`;
+          });
+          html += '</ul>';
+        }
+        if (data.track_infos?.length) {
+          html += '<h3 style="font-size:0.95rem;margin:1rem 0 0.5rem 0;">' + (data.mode === 'album' ? 'Tracks on this album' : 'Track(s)') + '</h3><ul class="card-list">';
+          data.track_infos.forEach(t => {
+            html += `<li class="card"><div class="title">${escapeHtml(t.name)} — ${escapeHtml(t.artists || '')}</div><a href="${escapeHtml(t.url)}" target="_blank" rel="noopener">${escapeHtml(t.url)}</a></li>`;
+          });
+          html += '</ul>';
+        }
+        html += '</div>';
+      }
+
+      const exactBadge = data.exact_match ? ' <span class="badge-exact">Exact match</span>' : '';
+      html += `<div class="summary">Checked <strong>${data.playlists_checked}</strong> playlist(s). Found <strong>${data.playlists_with_music?.length || 0}</strong> playlist(s) containing this music. <strong>${data.users?.length || 0}</strong> unique user(s) have this in a playlist.${exactBadge}</div>`;
+
+      if (data.users?.length) {
+        html += `<div class="section"><h2>Users who have this <span class="count">${data.users.length}</span></h2><ul class="card-list">`;
+        data.users.forEach(u => {
+          html += `<li class="card"><div class="title">${escapeHtml(u.display_name)}</div><div class="meta">${u.playlist_count} playlist(s)</div><a href="${escapeHtml(u.profile_url)}" target="_blank" rel="noopener">${escapeHtml(u.profile_url)}</a></li>`;
+        });
+        html += '</ul></div>';
+      }
+
+      if (data.playlists_with_music?.length) {
+        html += `<div class="section"><h2>Playlists containing this music <span class="count">${data.playlists_with_music.length}</span></h2><ul class="card-list">`;
+        data.playlists_with_music.forEach(p => {
+          const tracks = (p.tracks_found || []).slice(0, 5).join(', ');
+          html += `<li class="card"><div class="title">${escapeHtml(p.name)}</div><div class="meta">Owner: ${escapeHtml(p.owner_display_name)}</div><div class="tracks-found">${escapeHtml(tracks)}</div><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">Open playlist</a></li>`;
+        });
+        html += '</ul></div>';
+      }
+
+      if (data.all_checked_playlists?.length) {
+        html += `<div class="section"><h2>All checked playlists <span class="count">${data.all_checked_playlists.length}</span></h2><ul class="card-list url-list">`;
+        data.all_checked_playlists.forEach((p, i) => {
+          html += `<li class="card"><span>${i + 1}. ${escapeHtml(p.name)}</span><br><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(p.url)}</a></li>`;
+        });
+        html += '</ul></div>';
+      }
+
+      if (!data.users?.length && !data.playlists_with_music?.length && !data.all_checked_playlists?.length && data.mode === 'artist') {
+        html += '<p class="section" style="color:var(--text-muted);">No playlists containing this music were found in the sample checked. Try increasing "Max playlists to check" or search by song/album.</p>';
+      } else if (!data.users?.length && !data.playlists_with_music?.length && (data.mode === 'song' || data.mode === 'album') && !data.all_checked_playlists?.length) {
+        html += '<p class="section" style="color:var(--text-muted);">No playlists containing this were found in the sample checked.</p>';
+      }
+
+      resultsEl.innerHTML = html;
+      resultsEl.style.display = 'block';
+    }
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    const API_BASE = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'file://') ? window.location.origin : '';
+
+    async function parseJsonResponse(res) {
+      const text = await res.text();
+      const trimmed = (text || '').trim();
+      if (trimmed.startsWith('<')) {
+        return { error: 'Server returned HTML instead of JSON. Run the app with: python app.py then open http://127.0.0.1:5000 in the browser.' };
+      }
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json') || (trimmed.startsWith('{') || trimmed.startsWith('['))) {
+        try {
+          return trimmed ? JSON.parse(text) : {};
+        } catch (_) {
+          return { error: 'Invalid JSON from server' };
+        }
+      }
+      return { error: 'Server returned an error (not JSON). Run: python app.py and use http://127.0.0.1:5000' };
+    }
+
+    function ensureNotFileProtocol() {
+      if (window.location.protocol === 'file:') {
+        showError('Open this page from the Flask server, not as a file. Run in terminal: python app.py — then open http://127.0.0.1:5000 in your browser.');
+        return false;
+      }
+      return true;
+    }
+
+    document.getElementById('form-artist').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!ensureNotFileProtocol()) return;
+      const btn = document.getElementById('btn-artist');
+      btn.disabled = true;
+      loadingEl.style.display = 'block';
+      resultsEl.style.display = 'none';
+      hideError();
+      try {
+        const res = await fetch(API_BASE + '/api/search-artist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            artist: document.getElementById('artist').value.trim(),
+            track: document.getElementById('track').value.trim() || undefined,
+            max_playlists: parseInt(document.getElementById('max-artist').value, 10) || 50,
+            include_checked_playlists: document.getElementById('include-checked-artist').checked,
+          }),
+        });
+        const data = await parseJsonResponse(res);
+        if (!res.ok) {
+          showError(data.error || 'Search failed');
+          return;
+        }
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+        renderResult(data);
+      } catch (err) {
+        const msg = err.message || 'Network error';
+        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
+      } finally {
+        loadingEl.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('form-song').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!ensureNotFileProtocol()) return;
+      const btn = document.getElementById('btn-song');
+      btn.disabled = true;
+      loadingEl.style.display = 'block';
+      resultsEl.style.display = 'none';
+      hideError();
+      try {
+        const res = await fetch(API_BASE + '/api/search-song', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            song: document.getElementById('song').value.trim(),
+            max_playlists: parseInt(document.getElementById('max-song').value, 10) || 50,
+            include_checked_playlists: document.getElementById('include-checked-song').checked,
+          }),
+        });
+        const data = await parseJsonResponse(res);
+        if (!res.ok) {
+          showError(data.error || 'Search failed');
+          return;
+        }
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+        renderResult(data);
+      } catch (err) {
+        const msg = err.message || 'Network error';
+        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
+      } finally {
+        loadingEl.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('form-album').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!ensureNotFileProtocol()) return;
+      const btn = document.getElementById('btn-album');
+      btn.disabled = true;
+      loadingEl.style.display = 'block';
+      resultsEl.style.display = 'none';
+      hideError();
+      try {
+        const res = await fetch(API_BASE + '/api/search-album', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            album: document.getElementById('album').value.trim(),
+            max_playlists: parseInt(document.getElementById('max-album').value, 10) || 50,
+            include_checked_playlists: document.getElementById('include-checked-album').checked,
+          }),
+        });
+        const data = await parseJsonResponse(res);
+        if (!res.ok) {
+          showError(data.error || 'Search failed');
+          return;
+        }
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+        renderResult(data);
+      } catch (err) {
+        const msg = err.message || 'Network error';
+        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
+      } finally {
+        loadingEl.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
