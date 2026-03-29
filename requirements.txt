@@ -2,3 +2,5 @@ requests>=2.28.0
 python-dotenv>=1.0.0
 flask>=3.0.0
 gunicorn>=22.0.0
+youtube-search>=1.2.4
+ddgs>=7.0.0

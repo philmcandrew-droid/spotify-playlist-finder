@@ -3,534 +3,600 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spotify Playlist Finder</title>
+  <title>Ultimate Search</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #0f0f0f;
-      --surface: #1a1a1a;
-      --border: #2d2d2d;
-      --text: #e8e8e8;
-      --text-muted: #888;
-      --accent: #7c3aed;
-      --accent-hover: #8b5cf6;
-      --success: #22c55e;
-      --link: #a78bfa;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#050507;--bg2:#0a0a0f;
+      --surface:#111118;--surface2:#16161f;--surface3:#1c1c28;
+      --border:#232333;--border-hover:#33334a;
+      --text:#ececf1;--text2:#c5c5d2;--text-muted:#7e7e91;
+      --accent:#6d5cff;--accent2:#8b7dff;--accent-glow:rgba(109,92,255,.15);
+      --green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--pink:#f472b6;--teal:#2dd4bf;
+      --radius:12px;--radius-sm:8px;--radius-xs:6px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'DM Sans', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.5;
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+    /* Layout */
+    .app{max-width:860px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+    @media(max-width:640px){.app{padding:1.5rem 1rem 3rem}}
+
+    /* Header */
+    .header{text-align:center;margin-bottom:2.5rem}
+    .logo{font-size:2.2rem;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#6d5cff 0%,#a78bfa 50%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block}
+    .tagline{color:var(--text-muted);font-size:.95rem;margin-top:.4rem;max-width:520px;margin-left:auto;margin-right:auto}
+    .tagline code{font-family:'JetBrains Mono',monospace;font-size:.82em;background:var(--surface2);padding:.15rem .4rem;border-radius:var(--radius-xs);border:1px solid var(--border);color:var(--accent2)}
+
+    /* Navigation tabs */
+    .nav{display:flex;gap:.35rem;margin-bottom:2rem;flex-wrap:wrap;justify-content:center;padding:.5rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+    .nav-btn{
+      padding:.55rem 1rem;border:none;background:transparent;color:var(--text-muted);
+      font-family:inherit;font-size:.82rem;font-weight:500;cursor:pointer;
+      border-radius:var(--radius-sm);transition:all .2s;white-space:nowrap;
     }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
+    .nav-btn:hover{color:var(--text);background:var(--surface2)}
+    .nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(109,92,255,.35)}
+
+    /* Panels */
+    .panel{display:none;animation:fadeIn .25s ease}
+    .panel.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Sub-tabs inside Spotify panel */
+    .sub-nav{display:flex;gap:.3rem;margin-bottom:1.25rem}
+    .sub-btn{
+      padding:.45rem .9rem;border:1px solid var(--border);background:transparent;color:var(--text-muted);
+      font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;
+      border-radius:var(--radius-xs);transition:all .2s;
     }
-    h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin: 0 0 0.25rem 0;
-      letter-spacing: -0.02em;
+    .sub-btn:hover{color:var(--text);border-color:var(--border-hover);background:var(--surface2)}
+    .sub-btn.active{background:var(--surface3);color:var(--text);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow)}
+    .sub-panel{display:none;animation:fadeIn .2s ease}
+    .sub-panel.active{display:block}
+
+    /* Form elements */
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+    .field{margin-bottom:1.25rem}
+    .field:last-of-type{margin-bottom:0}
+    .field-label{display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.04em}
+    .field-input{
+      width:100%;padding:.7rem 1rem;font-family:inherit;font-size:.95rem;
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);
+      color:var(--text);transition:border-color .2s,box-shadow .2s;
     }
-    .subtitle {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin-bottom: 2rem;
+    .field-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+    .field-input::placeholder{color:var(--text-muted)}
+    .field-hint{font-size:.78rem;color:var(--text-muted);margin-top:.35rem;line-height:1.5}
+    .field-row{display:flex;gap:1rem;flex-wrap:wrap}
+    .field-row .field{flex:1;min-width:140px}
+
+    .checkbox-row{display:flex;align-items:center;gap:.5rem;margin-top:.75rem}
+    .checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+    .checkbox-row label{font-size:.85rem;color:var(--text2);cursor:pointer}
+
+    /* Buttons */
+    .btn-primary{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.75rem 1.6rem;font-family:inherit;font-size:.9rem;font-weight:600;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+      border:none;border-radius:var(--radius-sm);cursor:pointer;
+      margin-top:1.25rem;transition:all .2s;box-shadow:0 2px 12px rgba(109,92,255,.25);
     }
-    .tabs {
-      display: flex;
-      gap: 0.25rem;
-      margin-bottom: 1.5rem;
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(109,92,255,.4)}
+    .btn-primary:active{transform:translateY(0)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+    /* Loading */
+    .loading-bar{margin-top:1.5rem;display:none;align-items:center;gap:.75rem;color:var(--text-muted);font-size:.9rem}
+    .loading-bar.visible{display:flex}
+    .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Error */
+    .error-box{margin-top:1rem;padding:1rem 1.25rem;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);color:var(--red);font-size:.9rem;display:none}
+
+    /* Results area */
+    .results-area{margin-top:2rem;display:none}
+
+    /* Summary card */
+    .summary-card{
+      padding:1.25rem 1.5rem;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
+      border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.75rem;
+      font-size:.9rem;color:var(--text2);line-height:1.7;
     }
-    .tab {
-      padding: 0.6rem 1.2rem;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-muted);
-      font-family: inherit;
-      font-size: 0.9rem;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    .summary-card strong{color:var(--text)}
+    .summary-card .summary-row{margin-bottom:.3rem}
+    .summary-card .summary-row:last-child{margin-bottom:0}
+    .summary-muted{font-size:.82rem;color:var(--text-muted)}
+
+    .badge{
+      display:inline-block;font-size:.7rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.05em;padding:.2rem .5rem;border-radius:var(--radius-xs);vertical-align:middle;
     }
-    .tab:hover { color: var(--text); border-color: #444; }
-    .tab.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: white;
+    .badge-exact{background:rgba(109,92,255,.2);color:var(--accent2);margin-left:.4rem}
+    .badge-forum{background:rgba(109,92,255,.2);color:#c4b5fd}
+    .badge-web{background:rgba(52,211,153,.15);color:var(--green)}
+    .badge-archive_org{background:rgba(251,191,36,.15);color:var(--yellow)}
+    .badge-wayback{background:rgba(96,165,250,.15);color:var(--blue)}
+    .badge-facebook{background:rgba(59,89,152,.25);color:#8b9dc3}
+    .badge-instagram{background:rgba(225,48,108,.2);color:var(--pink)}
+    .badge-tiktok{background:rgba(0,242,234,.15);color:var(--teal)}
+    .badge-twitter{background:rgba(160,160,160,.2);color:#d4d4d4}
+    .badge-intl{background:rgba(99,102,241,.18);color:#a5b4fc}
+
+    /* Section headers */
+    .section-block{margin-bottom:2rem}
+    .section-head{
+      font-size:1rem;font-weight:700;color:var(--text);
+      display:flex;align-items:center;gap:.6rem;
+      margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);
     }
-    .panel { display: none; }
-    .panel.active { display: block; }
-    .form-group {
-      margin-bottom: 1rem;
+    .section-head .pill{
+      font-size:.75rem;font-weight:600;color:var(--text-muted);
+      background:var(--surface2);padding:.2rem .55rem;border-radius:20px;
     }
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-bottom: 0.35rem;
+
+    /* Result cards */
+    .card-list{list-style:none}
+    .result-card{
+      padding:1rem 1.15rem;background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius-sm);margin-bottom:.5rem;
+      transition:border-color .15s,background .15s;
     }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 0.65rem 0.9rem;
-      font-family: inherit;
-      font-size: 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-    }
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
-    }
-    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .row .form-group { flex: 1; min-width: 140px; }
-    .checkbox-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    .checkbox-wrap input { width: auto; }
-    .btn {
-      padding: 0.7rem 1.4rem;
-      font-family: inherit;
-      font-size: 0.95rem;
-      font-weight: 600;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      transition: background 0.15s;
-    }
-    .btn:hover { background: var(--accent-hover); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .loading {
-      margin-top: 1.5rem;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-    .loading::after {
-      content: '';
-      animation: dots 1.2s steps(4, end) infinite;
-    }
-    @keyframes dots {
-      0%, 20% { content: ''; }
-      40% { content: '.'; }
-      60% { content: '..'; }
-      80%, 100% { content: '...'; }
-    }
-    .error {
-      margin-top: 1rem;
-      padding: 0.9rem;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      border-radius: 8px;
-      color: #fca5a5;
-      font-size: 0.9rem;
-    }
-    .results { margin-top: 2rem; }
-    .section {
-      margin-bottom: 2rem;
-    }
-    .section h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin: 0 0 0.75rem 0;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .section h2 .count {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: var(--surface);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-    }
-    .card-list { list-style: none; padding: 0; margin: 0; }
-    .card {
-      padding: 0.85rem 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-    }
-    .card a {
-      color: var(--link);
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    .card a:hover { text-decoration: underline; }
-    .card .title { font-weight: 500; margin-bottom: 0.2rem; }
-    .card .meta { font-size: 0.85rem; color: var(--text-muted); }
-    .card .tracks-found { font-size: 0.8rem; color: var(--success); margin-top: 0.25rem; }
-    .url-list {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-    }
-    .url-list a { word-break: break-all; }
-    .summary {
-      padding: 1rem;
-      background: var(--surface);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-    .summary strong { color: var(--text); }
-    .exact-hint {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85em;
-      background: var(--surface);
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-    .badge-exact {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: rgba(124, 58, 237, 0.2);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-      margin-left: 0.5rem;
-    }
-    .hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .result-card:hover{border-color:var(--border-hover);background:var(--surface2)}
+    .result-card .r-title{font-weight:600;font-size:.92rem;margin-bottom:.2rem}
+    .result-card .r-meta{font-size:.82rem;color:var(--text-muted);margin-top:.2rem}
+    .result-card .r-match{font-size:.8rem;color:var(--green);margin-top:.25rem}
+    .result-card a{color:var(--accent2);text-decoration:none;font-size:.82rem;word-break:break-all}
+    .result-card a:hover{text-decoration:underline;color:#fff}
+
+    /* YouTube cards */
+    .yt-row{display:flex;gap:1rem;align-items:flex-start}
+    .yt-thumb{flex-shrink:0;width:140px;height:79px;object-fit:cover;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border)}
+    .yt-body{min-width:0;flex:1}
+    @media(max-width:520px){.yt-row{flex-direction:column}.yt-thumb{width:100%;height:auto;aspect-ratio:16/9}}
+
+    /* Empty state */
+    .empty-state{color:var(--text-muted);font-size:.88rem;padding:.5rem 0 1rem}
+
+    /* Subtle scrollbar */
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--border-hover)}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Spotify Playlist Finder</h1>
-    <p class="subtitle">Find playlists and users that have your music (or any song or album) on Spotify. Use <code class="exact-hint">"quotes"</code> for exact phrase match.</p>
+<div class="app">
+  <header class="header">
+    <div class="logo">Ultimate Search</div>
+    <p class="tagline">Search across Spotify, YouTube, social media, forums, archives, and international engines. Use <code>"quotes"</code> for exact match.</p>
+  </header>
 
-    <div class="tabs">
-      <button type="button" class="tab active" data-panel="artist">By artist</button>
-      <button type="button" class="tab" data-panel="song">By song</button>
-      <button type="button" class="tab" data-panel="album">By album</button>
+  <nav class="nav">
+    <button type="button" class="nav-btn active" data-panel="spotify">Spotify</button>
+    <button type="button" class="nav-btn" data-panel="youtube">YouTube</button>
+    <button type="button" class="nav-btn" data-panel="deep">Deep search</button>
+    <button type="button" class="nav-btn" data-panel="social">Social</button>
+    <button type="button" class="nav-btn" data-panel="intl">International</button>
+  </nav>
+
+  <!-- ===== SPOTIFY (Artist / Song / Album) ===== -->
+  <div id="panel-spotify" class="panel active">
+    <div class="sub-nav">
+      <button type="button" class="sub-btn active" data-sub="artist">Artist</button>
+      <button type="button" class="sub-btn" data-sub="song">Song</button>
+      <button type="button" class="sub-btn" data-sub="album">Album</button>
     </div>
 
-    <div id="panel-artist" class="panel active">
-      <form id="form-artist">
-        <div class="form-group">
-          <label for="artist">Artist name</label>
-          <input type="text" id="artist" name="artist" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-          <div class="hint">Wrap in double quotes for exact match only (e.g. <code class="exact-hint">"Phil McAndrew"</code>).</div>
-        </div>
-        <div class="form-group">
-          <label for="track">Optional: specific track name</label>
-          <input type="text" id="track" name="track" placeholder="e.g. Free">
-        </div>
-        <div class="row">
-          <div class="form-group">
-            <label for="max-artist">Max playlists to check</label>
-            <input type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200">
+    <div id="sub-artist" class="sub-panel active">
+      <div class="form-card">
+        <form id="form-artist">
+          <div class="field">
+            <label class="field-label" for="artist">Artist name</label>
+            <input class="field-input" type="text" id="artist" name="artist" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+            <div class="field-hint">Wrap in double quotes for exact match only.</div>
           </div>
-        </div>
-        <div class="checkbox-wrap">
-          <input type="checkbox" id="include-checked-artist" name="include_checked_playlists">
-          <label for="include-checked-artist">Include list of all checked playlist URLs</label>
-        </div>
-        <button type="submit" class="btn" id="btn-artist">Search</button>
-      </form>
-    </div>
-
-    <div id="panel-song" class="panel">
-      <form id="form-song">
-        <div class="form-group">
-          <label for="song">Song: track name, "Artist - Track", or Spotify track URL</label>
-          <input type="text" id="song" name="song" placeholder='e.g. Blinding Lights or "Blinding Lights"'>
-
-          <div class="hint">Use double quotes for exact phrase match (e.g. <code class="exact-hint">"Phil McAndrew - Free"</code>).</div>
-        </div>
-        <div class="row">
-          <div class="form-group">
-            <label for="max-song">Max playlists to check</label>
-            <input type="number" id="max-song" name="max_playlists" value="50" min="10" max="200">
+          <div class="field">
+            <label class="field-label" for="track">Specific track (optional)</label>
+            <input class="field-input" type="text" id="track" name="track" placeholder="e.g. Free">
           </div>
-        </div>
-        <div class="checkbox-wrap">
-          <input type="checkbox" id="include-checked-song" name="include_checked_playlists">
-          <label for="include-checked-song">Include list of all checked playlist URLs</label>
-        </div>
-        <button type="submit" class="btn" id="btn-song">Search</button>
-      </form>
-    </div>
-
-    <div id="panel-album" class="panel">
-      <form id="form-album">
-        <div class="form-group">
-          <label for="album">Album: name, "Artist - Album", or Spotify album URL</label>
-          <input type="text" id="album" name="album" placeholder='e.g. Free or "Phil McAndrew - Free"'>
-
-          <div class="hint">Use double quotes for exact album name match (e.g. <code class="exact-hint">"Free"</code>).</div>
-        </div>
-        <div class="row">
-          <div class="form-group">
-            <label for="max-album">Max playlists to check</label>
-            <input type="number" id="max-album" name="max_playlists" value="50" min="10" max="200">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="max-artist">Max playlists</label>
+              <input class="field-input" type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200" step="10">
+            </div>
           </div>
-        </div>
-        <div class="checkbox-wrap">
-          <input type="checkbox" id="include-checked-album" name="include_checked_playlists">
-          <label for="include-checked-album">Include list of all checked playlist URLs</label>
-        </div>
-        <button type="submit" class="btn" id="btn-album">Search</button>
-      </form>
+          <div class="checkbox-row">
+            <input type="checkbox" id="include-checked-artist" name="include_checked_playlists">
+            <label for="include-checked-artist">Include all checked playlist URLs</label>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-artist">Search Spotify</button>
+        </form>
+      </div>
     </div>
 
-    <div id="loading" class="loading" style="display: none;">Searching Spotify</div>
-    <div id="error" class="error" style="display: none;"></div>
-    <div id="results" class="results" style="display: none;"></div>
+    <div id="sub-song" class="sub-panel">
+      <div class="form-card">
+        <form id="form-song">
+          <div class="field">
+            <label class="field-label" for="song">Song</label>
+            <input class="field-input" type="text" id="song" name="song" placeholder='e.g. Blinding Lights, "Artist - Track", or Spotify URL' required>
+            <div class="field-hint">Track name, "Artist - Track", or paste a Spotify track URL.</div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="max-song">Max playlists</label>
+              <input class="field-input" type="number" id="max-song" name="max_playlists" value="50" min="10" max="200" step="10">
+            </div>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="include-checked-song" name="include_checked_playlists">
+            <label for="include-checked-song">Include all checked playlist URLs</label>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-song">Search Spotify</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="sub-album" class="sub-panel">
+      <div class="form-card">
+        <form id="form-album">
+          <div class="field">
+            <label class="field-label" for="album">Album</label>
+            <input class="field-input" type="text" id="album" name="album" placeholder='e.g. Free, "Phil McAndrew - Free", or Spotify URL' required>
+            <div class="field-hint">Album name, "Artist - Album", or paste a Spotify album URL.</div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="max-album">Max playlists</label>
+              <input class="field-input" type="number" id="max-album" name="max_playlists" value="50" min="10" max="200" step="10">
+            </div>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="include-checked-album" name="include_checked_playlists">
+            <label for="include-checked-album">Include all checked playlist URLs</label>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-album">Search Spotify</button>
+        </form>
+      </div>
+    </div>
   </div>
 
-  <script>
-    const loadingEl = document.getElementById('loading');
-    const errorEl = document.getElementById('error');
-    const resultsEl = document.getElementById('results');
+  <!-- ===== YOUTUBE ===== -->
+  <div id="panel-youtube" class="panel">
+    <div class="form-card">
+      <form id="form-youtube">
+        <div class="field">
+          <label class="field-label" for="yt-query">YouTube search</label>
+          <input class="field-input" type="text" id="yt-query" name="query" placeholder="e.g. artist name live session, music video" required>
+          <div class="field-hint">Uses youtube-search by default. Set YOUTUBE_API_KEY in .env for the official Data API.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="max-yt">Max results</label>
+            <input class="field-input" type="number" id="max-yt" name="max_results" value="50" min="1" max="100">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-youtube">Search YouTube</button>
+      </form>
+    </div>
+  </div>
 
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
-        errorEl.style.display = 'none';
-        resultsEl.style.display = 'none';
+  <!-- ===== DEEP SEARCH ===== -->
+  <div id="panel-deep" class="panel">
+    <div class="form-card">
+      <form id="form-deep">
+        <div class="field">
+          <label class="field-label" for="deep-query">Deep search</label>
+          <input class="field-input" type="text" id="deep-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+          <div class="field-hint">Searches Reddit, Last.fm, RateYourMusic, Discogs, Genius, forums, Internet Archive, and Wayback Machine.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="max-deep">Max results per source</label>
+            <input class="field-input" type="number" id="max-deep" name="max_results" value="50" min="1" max="100">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-deep">Deep search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== SOCIAL ===== -->
+  <div id="panel-social" class="panel">
+    <div class="form-card">
+      <form id="form-social">
+        <div class="field">
+          <label class="field-label" for="social-query">Social media search</label>
+          <input class="field-input" type="text" id="social-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+          <div class="field-hint">Searches Facebook, Instagram, TikTok, and Twitter/X for public pages, posts, profiles, and videos.</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="max-social">Max results per platform</label>
+            <input class="field-input" type="number" id="max-social" name="max_results" value="50" min="1" max="100">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-social">Search social</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== INTERNATIONAL ===== -->
+  <div id="panel-intl" class="panel">
+    <div class="form-card">
+      <form id="form-intl">
+        <div class="field">
+          <label class="field-label" for="intl-query">International search</label>
+          <input class="field-input" type="text" id="intl-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+          <div class="field-hint">Yandex, VK (Russia) &middot; Baidu, Bilibili, Douban (China) &middot; Yahoo Japan, Nico Nico (Japan) &middot; Naver, Melon (Korea) &middot; Letras, Vagalume (South America) &middot; Triple J, Stuff.co.nz (AU/NZ).</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="max-intl">Max results per region</label>
+            <input class="field-input" type="number" id="max-intl" name="max_results" value="50" min="1" max="100">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-intl">Search international</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="loading" class="loading-bar"><div class="spinner"></div><span id="loading-text">Searching</span></div>
+  <div id="error" class="error-box"></div>
+  <div id="results" class="results-area"></div>
+</div>
+
+<script>
+const loadingEl=document.getElementById('loading'),loadingText=document.getElementById('loading-text'),errorEl=document.getElementById('error'),resultsEl=document.getElementById('results');
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    errorEl.style.display='none';resultsEl.style.display='none';
+  });
+});
+document.querySelectorAll('.sub-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const parent=btn.closest('.panel');
+    parent.querySelectorAll('.sub-btn').forEach(b=>b.classList.remove('active'));
+    parent.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    parent.querySelector('#sub-'+btn.dataset.sub).classList.add('active');
+    errorEl.style.display='none';resultsEl.style.display='none';
+  });
+});
+
+function showLoading(msg){loadingText.textContent=msg;loadingEl.classList.add('visible')}
+function hideLoading(){loadingEl.classList.remove('visible')}
+function showError(msg){errorEl.textContent=msg;errorEl.style.display='block';resultsEl.style.display='none'}
+function hideError(){errorEl.style.display='none'}
+function esc(s){if(s==null)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+const API=(typeof window!=='undefined'&&window.location.origin&&window.location.origin!=='file://')?window.location.origin:'';
+
+async function parseJson(res){
+  const text=await res.text(),t=(text||'').trim();
+  if(t.startsWith('<'))return{error:'Server returned HTML. Make sure you opened this page from the Flask server.'};
+  const ct=res.headers.get('content-type')||'';
+  if(ct.includes('application/json')||(t.startsWith('{')||t.startsWith('['))){try{return t?JSON.parse(text):{}}catch(_){return{error:'Invalid JSON'}}}
+  return{error:'Unexpected response from server.'}
+}
+
+function ensureServer(){
+  if(window.location.protocol==='file:'){showError('Open from the Flask server, not as a file. Run: python app.py');return false}return true
+}
+
+async function doSearch(url,body,btn,loadMsg,renderFn){
+  if(!ensureServer())return;
+  btn.disabled=true;showLoading(loadMsg);resultsEl.style.display='none';hideError();
+  try{
+    const res=await fetch(API+url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await parseJson(res);
+    if(!res.ok){showError(data.error||'Search failed');return}
+    if(data.error){showError(data.error);return}
+    renderFn(data);
+  }catch(err){showError(err.message||'Network error')}
+  finally{hideLoading();btn.disabled=false}
+}
+
+/* ===== Spotify result renderer ===== */
+function renderResult(data){
+  hideError();let html='';
+  if((data.mode==='song'||data.mode==='album')&&(data.track_infos?.length||data.album_infos?.length)){
+    const heading=data.mode==='album'?'References to this album':'References to this song';
+    html+='<div class="section-block"><div class="section-head">'+esc(heading)+'</div>';
+    if(data.album_infos?.length){html+='<div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem">Album(s)</div><ul class="card-list">';data.album_infos.forEach(a=>{html+='<li class="result-card"><div class="r-title">'+esc(a.name)+' &mdash; '+esc(a.artist||'')+'</div><a href="'+esc(a.url)+'" target="_blank" rel="noopener">'+esc(a.url)+'</a></li>'});html+='</ul>'}
+    if(data.track_infos?.length){html+='<div style="font-weight:600;font-size:.88rem;margin:.75rem 0 .5rem">'+(data.mode==='album'?'Tracks on album':'Track(s)')+'</div><ul class="card-list">';data.track_infos.forEach(t=>{html+='<li class="result-card"><div class="r-title">'+esc(t.name)+' &mdash; '+esc(t.artists||'')+'</div><a href="'+esc(t.url)+'" target="_blank" rel="noopener">'+esc(t.url)+'</a></li>'});html+='</ul>'}
+    html+='</div>';
+  }
+  const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  const mc=data.playlists_with_music?.length||0,uc=data.users?.length||0,tc=data.track_ids_count||data.track_infos?.length||0,ac=data.artist_ids_count||0;
+  html+='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
+  html+='<div class="summary-row"><strong>Mode:</strong> '+esc(data.mode)+' &middot; <strong>Playlists checked:</strong> '+data.playlists_checked+' &middot; <strong>Matches:</strong> '+mc+'</div>';
+  html+='<div class="summary-row"><strong>Unique users:</strong> '+uc+' &middot; <strong>Tracks matched:</strong> '+tc+(ac?' &middot; <strong>Artists:</strong> '+ac:'')+'</div>';
+  if(data.track_infos?.length){const tt=data.track_infos.slice(0,3).map(t=>t.name+(t.artists?' &mdash; '+t.artists:'')).join('; ');html+='<div class="summary-muted">Top tracks: '+esc(tt)+'</div>'}
+  if(data.album_infos?.length){const ta=data.album_infos.slice(0,3).map(a=>a.name+(a.artist?' &mdash; '+a.artist:'')).join('; ');html+='<div class="summary-muted">Albums: '+esc(ta)+'</div>'}
+  html+='</div>';
+
+  if(data.users?.length){
+    html+='<div class="section-block"><div class="section-head">Users <span class="pill">'+uc+'</span></div><ul class="card-list">';
+    data.users.forEach(u=>{html+='<li class="result-card"><div class="r-title">'+esc(u.display_name)+'</div><div class="r-meta">ID: '+esc(u.id)+' &middot; '+u.playlist_count+' playlist(s)'+(u.followers!=null?' &middot; '+u.followers+' followers':'')+(u.country?' &middot; '+esc(u.country):'')+'</div><a href="'+esc(u.profile_url)+'" target="_blank" rel="noopener">'+esc(u.profile_url)+'</a></li>'});
+    html+='</ul></div>';
+  }
+  if(data.playlists_with_music?.length){
+    html+='<div class="section-block"><div class="section-head">Playlists <span class="pill">'+mc+'</span></div><ul class="card-list">';
+    data.playlists_with_music.forEach(p=>{
+      const tr=(p.tracks_found||[]).slice(0,10).join(', '),ex=(p.tracks_found||[]).length>10?' +'+(p.tracks_found.length-10)+' more':'';
+      html+='<li class="result-card"><div class="r-title">'+esc(p.name)+'</div><div class="r-meta">Owner: '+esc(p.owner_display_name)+' ('+esc(p.owner_id)+')'+(p.owner_country?' &middot; '+esc(p.owner_country):'')+(p.owner_followers!=null?' &middot; '+p.owner_followers+' followers':'')+'</div><div class="r-match">'+esc(tr)+esc(ex)+'</div><a href="'+esc(p.url)+'" target="_blank" rel="noopener">Open playlist</a></li>'});
+    html+='</ul></div>';
+  }
+  if(data.all_checked_playlists?.length){
+    html+='<div class="section-block"><div class="section-head">All checked playlists <span class="pill">'+data.all_checked_playlists.length+'</span></div><ul class="card-list">';
+    data.all_checked_playlists.forEach((p,i)=>{html+='<li class="result-card"><span style="color:var(--text-muted);font-size:.82rem">'+(i+1)+'.</span> '+esc(p.name)+'<br><a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+esc(p.url)+'</a></li>'});
+    html+='</ul></div>';
+  }
+  if(!mc&&!uc){html+='<p class="empty-state">No playlists found. Try increasing max playlists or searching by a different method.</p>'}
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
+
+/* ===== YouTube renderer ===== */
+function renderYT(data){
+  hideError();
+  const src=data.source==='youtube_data_api'?'YouTube Data API':'youtube-search';
+  const vc=data.videos?.length||0;
+  const chs=[...new Set((data.videos||[]).map(v=>v.channel_title).filter(Boolean))];
+  let html='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+'</div>';
+  html+='<div class="summary-row"><strong>Videos:</strong> '+vc+' &middot; <strong>Source:</strong> '+esc(src)+'</div>';
+  if(chs.length)html+='<div class="summary-muted">Channels: '+esc(chs.slice(0,8).join(', '))+(chs.length>8?' +'+(chs.length-8)+' more':'')+'</div>';
+  html+='</div>';
+  if(vc){
+    html+='<div class="section-block"><div class="section-head">Videos <span class="pill">'+vc+'</span></div><ul class="card-list">';
+    data.videos.forEach(v=>{
+      const meta=[v.channel_title,v.duration,v.views].filter(Boolean).join(' &middot; ');
+      html+='<li class="result-card"><div class="yt-row">';
+      if(v.thumbnail)html+='<a href="'+esc(v.url)+'" target="_blank" rel="noopener"><img class="yt-thumb" src="'+esc(v.thumbnail)+'" alt="" loading="lazy"></a>';
+      html+='<div class="yt-body"><div class="r-title">'+esc(v.title)+'</div>';
+      if(meta)html+='<div class="r-meta">'+esc(meta)+'</div>';
+      if(v.description)html+='<div class="r-meta" style="margin-top:.3rem">'+esc(v.description.slice(0,280))+(v.description.length>280?'&hellip;':'')+'</div>';
+      html+='<div style="margin-top:.35rem"><a href="'+esc(v.url)+'" target="_blank" rel="noopener">Watch on YouTube</a></div></div></div></li>';
+    });
+    html+='</ul></div>';
+  }else{html+='<p class="empty-state">No videos found for this query.</p>'}
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
+
+/* ===== Deep search renderer ===== */
+function renderDeep(data){
+  hideError();
+  const fc=data.forum_results?.length||0,wc=data.general_results?.length||0,ac=data.archive_results?.length||0,wbc=data.wayback_results?.length||0,total=fc+wc+ac+wbc;
+  const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  let html='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
+  html+='<div class="summary-row"><strong>Total:</strong> '+total+' &mdash; Forums: <strong>'+fc+'</strong> &middot; Web: <strong>'+wc+'</strong> &middot; Archive: <strong>'+ac+'</strong> &middot; Wayback: <strong>'+wbc+'</strong></div>';
+  const allD=[...(data.forum_results||[]),...(data.general_results||[])].map(r=>{try{return new URL(r.url).hostname.replace('www.','')}catch(e){return''}}).filter(Boolean);
+  const dc={};allD.forEach(d=>{dc[d]=(dc[d]||0)+1});
+  const td=Object.entries(dc).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([d,c])=>d+' ('+c+')').join(', ');
+  if(td)html+='<div class="summary-muted">Top sites: '+esc(td)+'</div>';
+  html+='</div>';
+  function renderSec(title,items,type){
+    if(!items?.length)return'';
+    let s='<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">'+items.length+'</span></div><ul class="card-list">';
+    items.forEach(item=>{
+      const b='<span class="badge badge-'+(item.source||type)+'">'+esc(item.source||type)+'</span> ';
+      const desc=item.snippet||item.description||'';
+      const dt=item.date?'<span style="margin-left:.4rem;font-size:.78rem;color:var(--text-muted)">'+esc(item.date)+'</span>':'';
+      const mt=item.mediatype?'<span style="margin-left:.4rem;font-size:.78rem;color:var(--text-muted)">'+esc(item.mediatype)+'</span>':'';
+      s+='<li class="result-card">'+b+'<span class="r-title" style="display:inline">'+esc(item.title)+'</span>'+dt+mt;
+      if(desc)s+='<div class="r-meta" style="margin-top:.3rem">'+esc(desc.slice(0,400))+(desc.length>400?'&hellip;':'')+'</div>';
+      s+='<div style="margin-top:.3rem"><a href="'+esc(item.url)+'" target="_blank" rel="noopener">'+esc(item.url)+'</a></div>';
+      if(item.original_url)s+='<div class="r-meta" style="font-size:.75rem">Original: '+esc(item.original_url)+'</div>';
+      s+='</li>';
+    });
+    return s+'</ul></div>';
+  }
+  html+=renderSec('Forum results',data.forum_results,'forum');
+  html+=renderSec('Web / discussions',data.general_results,'web');
+  html+=renderSec('Internet Archive',data.archive_results,'archive_org');
+  html+=renderSec('Wayback Machine',data.wayback_results,'wayback');
+  if(!total)html+='<p class="empty-state">No results found. Try a broader query.</p>';
+  if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
+
+/* ===== Social renderer ===== */
+const SOCIAL_PLATFORMS=[
+  {key:'facebook',label:'Facebook',badge:'facebook'},
+  {key:'instagram',label:'Instagram',badge:'instagram'},
+  {key:'tiktok',label:'TikTok',badge:'tiktok'},
+  {key:'twitter',label:'Twitter / X',badge:'twitter'},
+];
+function renderSocial(data){
+  hideError();
+  const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  const fb=data.facebook?.length||0,ig=data.instagram?.length||0,tt=data.tiktok?.length||0,tw=data.twitter?.length||0;
+  let html='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
+  html+='<div class="summary-row"><strong>Total:</strong> '+(data.total||0)+' &mdash; Facebook: <strong>'+fb+'</strong> &middot; Instagram: <strong>'+ig+'</strong> &middot; TikTok: <strong>'+tt+'</strong> &middot; Twitter/X: <strong>'+tw+'</strong></div>';
+  html+='</div>';
+  SOCIAL_PLATFORMS.forEach(p=>{
+    const items=data[p.key]||[];
+    html+='<div class="section-block"><div class="section-head">'+esc(p.label)+' <span class="pill">'+items.length+'</span></div>';
+    if(items.length){
+      html+='<ul class="card-list">';
+      items.forEach(item=>{
+        html+='<li class="result-card"><span class="badge badge-'+p.badge+'">'+esc(p.label)+'</span> <span class="r-title" style="display:inline">'+esc(item.title)+'</span>';
+        if(item.snippet)html+='<div class="r-meta" style="margin-top:.3rem">'+esc(item.snippet.slice(0,400))+(item.snippet.length>400?'&hellip;':'')+'</div>';
+        html+='<div style="margin-top:.3rem"><a href="'+esc(item.url)+'" target="_blank" rel="noopener">'+esc(item.url)+'</a></div></li>';
       });
-    });
+      html+='</ul>';
+    }else{html+='<p class="empty-state">No results on '+esc(p.label)+'.</p>'}
+    html+='</div>';
+  });
+  if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
 
-    function showError(msg) {
-      errorEl.textContent = msg;
-      errorEl.style.display = 'block';
-      resultsEl.style.display = 'none';
-    }
-    function hideError() {
-      errorEl.style.display = 'none';
-    }
+/* ===== International renderer ===== */
+const INTL_REGIONS=[
+  {key:'russia',label:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA'},
+  {key:'china',label:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3'},
+  {key:'japan',label:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5'},
+  {key:'korea',label:'South Korea',flag:'\uD83C\uDDF0\uD83C\uDDF7'},
+  {key:'south_america',label:'South America',flag:'\uD83C\uDF0E'},
+  {key:'oceania',label:'Australia & NZ',flag:'\uD83C\uDDE6\uD83C\uDDFA'},
+];
+function renderIntl(data){
+  hideError();
+  const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  let html='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
+  html+='<div class="summary-row"><strong>Total:</strong> '+(data.total||0)+' &mdash; '+INTL_REGIONS.map(r=>r.flag+' '+esc(r.label)+': <strong>'+(data[r.key]||[]).length+'</strong>').join(' &middot; ')+'</div>';
+  html+='</div>';
+  INTL_REGIONS.forEach(r=>{
+    const items=data[r.key]||[];
+    html+='<div class="section-block"><div class="section-head">'+r.flag+' '+esc(r.label)+' <span class="pill">'+items.length+'</span></div>';
+    if(items.length){
+      html+='<ul class="card-list">';
+      items.forEach(item=>{
+        const eng=item.engine?'<span class="badge badge-intl">'+esc(item.engine)+'</span> ':'';
+        html+='<li class="result-card">'+eng+'<span class="r-title" style="display:inline">'+esc(item.title)+'</span>';
+        if(item.snippet)html+='<div class="r-meta" style="margin-top:.3rem">'+esc(item.snippet.slice(0,400))+(item.snippet.length>400?'&hellip;':'')+'</div>';
+        html+='<div style="margin-top:.3rem"><a href="'+esc(item.url)+'" target="_blank" rel="noopener">'+esc(item.url)+'</a></div></li>';
+      });
+      html+='</ul>';
+    }else{html+='<p class="empty-state">No results for this region.</p>'}
+    html+='</div>';
+  });
+  if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
 
-    function renderResult(data) {
-      hideError();
-      let html = '';
-
-      if ((data.mode === 'song' || data.mode === 'album') && (data.track_infos?.length || data.album_infos?.length)) {
-        const heading = data.mode === 'album' ? 'References to this album' : 'References to this song';
-        html += '<div class="section"><h2>' + escapeHtml(heading) + '</h2>';
-        if (data.album_infos?.length) {
-          html += '<h3 style="font-size:0.95rem;margin:0 0 0.5rem 0;">Album(s)</h3><ul class="card-list">';
-          data.album_infos.forEach(a => {
-            html += `<li class="card"><div class="title">${escapeHtml(a.name)} — ${escapeHtml(a.artist || '')}</div><a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.url)}</a></li>`;
-          });
-          html += '</ul>';
-        }
-        if (data.track_infos?.length) {
-          html += '<h3 style="font-size:0.95rem;margin:1rem 0 0.5rem 0;">' + (data.mode === 'album' ? 'Tracks on this album' : 'Track(s)') + '</h3><ul class="card-list">';
-          data.track_infos.forEach(t => {
-            html += `<li class="card"><div class="title">${escapeHtml(t.name)} — ${escapeHtml(t.artists || '')}</div><a href="${escapeHtml(t.url)}" target="_blank" rel="noopener">${escapeHtml(t.url)}</a></li>`;
-          });
-          html += '</ul>';
-        }
-        html += '</div>';
-      }
-
-      const exactBadge = data.exact_match ? ' <span class="badge-exact">Exact match</span>' : '';
-      html += `<div class="summary">Checked <strong>${data.playlists_checked}</strong> playlist(s). Found <strong>${data.playlists_with_music?.length || 0}</strong> playlist(s) containing this music. <strong>${data.users?.length || 0}</strong> unique user(s) have this in a playlist.${exactBadge}</div>`;
-
-      if (data.users?.length) {
-        html += `<div class="section"><h2>Users who have this <span class="count">${data.users.length}</span></h2><ul class="card-list">`;
-        data.users.forEach(u => {
-          html += `<li class="card"><div class="title">${escapeHtml(u.display_name)}</div><div class="meta">${u.playlist_count} playlist(s)</div><a href="${escapeHtml(u.profile_url)}" target="_blank" rel="noopener">${escapeHtml(u.profile_url)}</a></li>`;
-        });
-        html += '</ul></div>';
-      }
-
-      if (data.playlists_with_music?.length) {
-        html += `<div class="section"><h2>Playlists containing this music <span class="count">${data.playlists_with_music.length}</span></h2><ul class="card-list">`;
-        data.playlists_with_music.forEach(p => {
-          const tracks = (p.tracks_found || []).slice(0, 5).join(', ');
-          html += `<li class="card"><div class="title">${escapeHtml(p.name)}</div><div class="meta">Owner: ${escapeHtml(p.owner_display_name)}</div><div class="tracks-found">${escapeHtml(tracks)}</div><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">Open playlist</a></li>`;
-        });
-        html += '</ul></div>';
-      }
-
-      if (data.all_checked_playlists?.length) {
-        html += `<div class="section"><h2>All checked playlists <span class="count">${data.all_checked_playlists.length}</span></h2><ul class="card-list url-list">`;
-        data.all_checked_playlists.forEach((p, i) => {
-          html += `<li class="card"><span>${i + 1}. ${escapeHtml(p.name)}</span><br><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(p.url)}</a></li>`;
-        });
-        html += '</ul></div>';
-      }
-
-      if (!data.users?.length && !data.playlists_with_music?.length && !data.all_checked_playlists?.length && data.mode === 'artist') {
-        html += '<p class="section" style="color:var(--text-muted);">No playlists containing this music were found in the sample checked. Try increasing "Max playlists to check" or search by song/album.</p>';
-      } else if (!data.users?.length && !data.playlists_with_music?.length && (data.mode === 'song' || data.mode === 'album') && !data.all_checked_playlists?.length) {
-        html += '<p class="section" style="color:var(--text-muted);">No playlists containing this were found in the sample checked.</p>';
-      }
-
-      resultsEl.innerHTML = html;
-      resultsEl.style.display = 'block';
-    }
-
-    function escapeHtml(s) {
-      if (s == null) return '';
-      const div = document.createElement('div');
-      div.textContent = s;
-      return div.innerHTML;
-    }
-
-    const API_BASE = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'file://') ? window.location.origin : '';
-
-    async function parseJsonResponse(res) {
-      const text = await res.text();
-      const trimmed = (text || '').trim();
-      if (trimmed.startsWith('<')) {
-        return { error: 'Server returned HTML instead of JSON. Run the app with: python app.py then open http://127.0.0.1:5000 in the browser.' };
-      }
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json') || (trimmed.startsWith('{') || trimmed.startsWith('['))) {
-        try {
-          return trimmed ? JSON.parse(text) : {};
-        } catch (_) {
-          return { error: 'Invalid JSON from server' };
-        }
-      }
-      return { error: 'Server returned an error (not JSON). Run: python app.py and use http://127.0.0.1:5000' };
-    }
-
-    function ensureNotFileProtocol() {
-      if (window.location.protocol === 'file:') {
-        showError('Open this page from the Flask server, not as a file. Run in terminal: python app.py — then open http://127.0.0.1:5000 in your browser.');
-        return false;
-      }
-      return true;
-    }
-
-    document.getElementById('form-artist').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!ensureNotFileProtocol()) return;
-      const btn = document.getElementById('btn-artist');
-      btn.disabled = true;
-      loadingEl.style.display = 'block';
-      resultsEl.style.display = 'none';
-      hideError();
-      try {
-        const res = await fetch(API_BASE + '/api/search-artist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            artist: document.getElementById('artist').value.trim(),
-            track: document.getElementById('track').value.trim() || undefined,
-            max_playlists: parseInt(document.getElementById('max-artist').value, 10) || 50,
-            include_checked_playlists: document.getElementById('include-checked-artist').checked,
-          }),
-        });
-        const data = await parseJsonResponse(res);
-        if (!res.ok) {
-          showError(data.error || 'Search failed');
-          return;
-        }
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-        renderResult(data);
-      } catch (err) {
-        const msg = err.message || 'Network error';
-        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
-      } finally {
-        loadingEl.style.display = 'none';
-        btn.disabled = false;
-      }
-    });
-
-    document.getElementById('form-song').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!ensureNotFileProtocol()) return;
-      const btn = document.getElementById('btn-song');
-      btn.disabled = true;
-      loadingEl.style.display = 'block';
-      resultsEl.style.display = 'none';
-      hideError();
-      try {
-        const res = await fetch(API_BASE + '/api/search-song', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            song: document.getElementById('song').value.trim(),
-            max_playlists: parseInt(document.getElementById('max-song').value, 10) || 50,
-            include_checked_playlists: document.getElementById('include-checked-song').checked,
-          }),
-        });
-        const data = await parseJsonResponse(res);
-        if (!res.ok) {
-          showError(data.error || 'Search failed');
-          return;
-        }
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-        renderResult(data);
-      } catch (err) {
-        const msg = err.message || 'Network error';
-        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
-      } finally {
-        loadingEl.style.display = 'none';
-        btn.disabled = false;
-      }
-    });
-
-    document.getElementById('form-album').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!ensureNotFileProtocol()) return;
-      const btn = document.getElementById('btn-album');
-      btn.disabled = true;
-      loadingEl.style.display = 'block';
-      resultsEl.style.display = 'none';
-      hideError();
-      try {
-        const res = await fetch(API_BASE + '/api/search-album', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            album: document.getElementById('album').value.trim(),
-            max_playlists: parseInt(document.getElementById('max-album').value, 10) || 50,
-            include_checked_playlists: document.getElementById('include-checked-album').checked,
-          }),
-        });
-        const data = await parseJsonResponse(res);
-        if (!res.ok) {
-          showError(data.error || 'Search failed');
-          return;
-        }
-        if (data.error) {
-          showError(data.error);
-          return;
-        }
-        renderResult(data);
-      } catch (err) {
-        const msg = err.message || 'Network error';
-        showError(msg.includes('JSON') ? 'Server returned a non-JSON response. Run: python app.py and open http://127.0.0.1:5000' : msg);
-      } finally {
-        loadingEl.style.display = 'none';
-        btn.disabled = false;
-      }
-    });
-  </script>
+/* ===== Form handlers ===== */
+document.getElementById('form-artist').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-artist',{artist:document.getElementById('artist').value.trim(),track:document.getElementById('track').value.trim()||undefined,max_playlists:parseInt(document.getElementById('max-artist').value,10)||50,include_checked_playlists:document.getElementById('include-checked-artist').checked},document.getElementById('btn-artist'),'Searching Spotify playlists',renderResult)});
+document.getElementById('form-song').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-song',{song:document.getElementById('song').value.trim(),max_playlists:parseInt(document.getElementById('max-song').value,10)||50,include_checked_playlists:document.getElementById('include-checked-song').checked},document.getElementById('btn-song'),'Searching Spotify playlists',renderResult)});
+document.getElementById('form-album').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-album',{album:document.getElementById('album').value.trim(),max_playlists:parseInt(document.getElementById('max-album').value,10)||50,include_checked_playlists:document.getElementById('include-checked-album').checked},document.getElementById('btn-album'),'Searching Spotify playlists',renderResult)});
+document.getElementById('form-youtube').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-youtube',{query:document.getElementById('yt-query').value.trim(),max_results:parseInt(document.getElementById('max-yt').value,10)||50},document.getElementById('btn-youtube'),'Searching YouTube',renderYT)});
+document.getElementById('form-deep').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/deep-search',{query:document.getElementById('deep-query').value.trim(),max_results:parseInt(document.getElementById('max-deep').value,10)||50},document.getElementById('btn-deep'),'Deep searching forums, archives & old websites',renderDeep)});
+document.getElementById('form-social').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-social',{query:document.getElementById('social-query').value.trim(),max_results:parseInt(document.getElementById('max-social').value,10)||50},document.getElementById('btn-social'),'Searching social media',renderSocial)});
+document.getElementById('form-intl').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-international',{query:document.getElementById('intl-query').value.trim(),max_results:parseInt(document.getElementById('max-intl').value,10)||50},document.getElementById('btn-intl'),'Searching international engines (6 regions)',renderIntl)});
+</script>
 </body>
 </html>
