@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ultimate-search
+    runtime: docker
+    repo: https://github.com/philmcandrew-droid/spotify-playlist-finder
+    plan: free
+    envVars:
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
