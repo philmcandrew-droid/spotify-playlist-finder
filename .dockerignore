@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+.env
+*.pem
+checked_playlists.txt
+playlist_urls_only.txt
+STEPS.md
