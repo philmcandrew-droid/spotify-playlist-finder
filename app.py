@@ -11,6 +11,7 @@ from yt_search import run_youtube_search
 from deep_search import run_deep_search
 from social_search import run_social_search
 from intl_search import run_intl_search
+from global_search import run_global_search
 
 # Must not use static_url_path="" — Flask adds /<path:filename> for static files, which
 # matches /api/... and only allows GET/HEAD, so POST /api/search-* returns 405.
@@ -174,6 +175,22 @@ def api_search_international():
             return jsonify({"error": "Search query is required"}), 400
         max_results = _int_param(data, "max_results", 50, lo=1, hi=100)
         result = run_intl_search(query=q, max_results=max_results)
+        if "error" in result:
+            return jsonify(result), 400
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/search-global", methods=["GET", "POST"])
+def api_search_global():
+    try:
+        data = _request_payload()
+        q = (data.get("query") or "").strip()
+        if not q:
+            return jsonify({"error": "Search query is required"}), 400
+        max_results = _int_param(data, "max_results", 50, lo=1, hi=100)
+        result = run_global_search(query=q, max_results=max_results)
         if "error" in result:
             return jsonify(result), 400
         return jsonify(result)

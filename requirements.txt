@@ -4,3 +4,4 @@ flask>=3.0.0
 gunicorn>=22.0.0
 youtube-search>=1.2.4
 ddgs>=7.0.0
+beautifulsoup4>=4.12.0

@@ -127,6 +127,9 @@
     .badge-tiktok{background:rgba(0,242,234,.15);color:var(--teal)}
     .badge-twitter{background:rgba(160,160,160,.2);color:#d4d4d4}
     .badge-intl{background:rgba(99,102,241,.18);color:#a5b4fc}
+    .badge-engine{background:rgba(96,165,250,.15);color:var(--blue)}
+    .badge-crawler{background:rgba(251,191,36,.15);color:var(--yellow)}
+    .badge-news{background:rgba(244,114,182,.15);color:var(--pink)}
 
     /* Section headers */
     .section-block{margin-bottom:2rem}
@@ -174,7 +177,7 @@
 <div class="app">
   <header class="header">
     <div class="logo">Ultimate Search</div>
-    <p class="tagline">Search across Spotify, YouTube, social media, forums, archives, and international engines. Use <code>"quotes"</code> for exact match.</p>
+    <p class="tagline">Search across Spotify, YouTube, social media, forums, archives, international engines, and the top global search engines &amp; web crawlers. Use <code>"quotes"</code> for exact match.</p>
   </header>
 
   <nav class="nav">
@@ -183,6 +186,7 @@
     <button type="button" class="nav-btn" data-panel="deep">Deep search</button>
     <button type="button" class="nav-btn" data-panel="social">Social</button>
     <button type="button" class="nav-btn" data-panel="intl">International</button>
+    <button type="button" class="nav-btn" data-panel="global">Global</button>
   </nav>
 
   <!-- ===== SPOTIFY (Artist / Song / Album) ===== -->
@@ -343,6 +347,26 @@
           </div>
         </div>
         <button type="submit" class="btn-primary" id="btn-intl">Search international</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== GLOBAL ===== -->
+  <div id="panel-global" class="panel">
+    <div class="form-card">
+      <form id="form-global">
+        <div class="field">
+          <label class="field-label" for="global-query">Global search</label>
+          <input class="field-input" type="text" id="global-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
+          <div class="field-hint">Yahoo, DuckDuckGo (Bing-powered), Mojeek, latest news + web crawlers (Common Crawl, Wayback Machine, Marginalia). Set <code>GOOGLE_API_KEY</code> &amp; <code>GOOGLE_CSE_ID</code> in .env for Google results (free 100/day).</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="max-global">Max results per source</label>
+            <input class="field-input" type="number" id="max-global" name="max_results" value="50" min="1" max="100">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-global">Search globally</button>
       </form>
     </div>
   </div>
@@ -582,6 +606,57 @@ function renderIntl(data){
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }
 
+/* ===== Global renderer ===== */
+const GLOBAL_ENGINES=[
+  {key:'Google',badge:'engine'},
+  {key:'Yahoo',badge:'engine'},
+  {key:'DuckDuckGo',badge:'engine'},
+  {key:'Latest News',badge:'news'},
+  {key:'Mojeek',badge:'engine'},
+];
+const GLOBAL_CRAWLERS=[
+  {key:'Common Crawl',badge:'crawler'},
+  {key:'Wayback Machine',badge:'crawler'},
+  {key:'Marginalia',badge:'crawler'},
+];
+function renderGlobal(data){
+  hideError();
+  const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  const eCount=Object.values(data.search_engines||{}).reduce((s,a)=>s+a.length,0);
+  const cCount=Object.values(data.crawlers||{}).reduce((s,a)=>s+a.length,0);
+  let html='<div class="summary-card">';
+  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
+  html+='<div class="summary-row"><strong>Total:</strong> '+(data.total||0)+' &mdash; Search engines: <strong>'+eCount+'</strong> &middot; Web crawlers: <strong>'+cCount+'</strong></div>';
+  const eSources=Object.keys(data.search_engines||{}).join(', ');
+  const cSources=Object.keys(data.crawlers||{}).join(', ');
+  if(eSources)html+='<div class="summary-muted">Engines: '+esc(eSources)+'</div>';
+  if(cSources)html+='<div class="summary-muted">Crawlers: '+esc(cSources)+'</div>';
+  html+='</div>';
+
+  function renderSourceSection(title,sources,bucketData,badgeClass){
+    const items=[];sources.forEach(s=>{(bucketData[s.key]||[]).forEach(r=>{r._badge=s.badge;r._src=s.key;items.push(r)})});
+    if(!items.length)return'<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">0</span></div><p class="empty-state">No results from these sources.</p></div>';
+    let s='<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">'+items.length+'</span></div><ul class="card-list">';
+    items.forEach(r=>{
+      const badge='<span class="badge badge-'+r._badge+'">'+esc(r._src)+'</span> ';
+      const eng=r.engines?' <span style="font-size:.75rem;color:var(--text-muted)">(via '+esc(r.engines)+')</span>':'';
+      const dt=r.date?' <span style="font-size:.75rem;color:var(--text-muted)">'+esc(r.date)+'</span>':'';
+      s+='<li class="result-card">'+badge+'<span class="r-title" style="display:inline">'+esc(r.title)+'</span>'+eng+dt;
+      if(r.snippet)s+='<div class="r-meta" style="margin-top:.3rem">'+esc(r.snippet.slice(0,500))+(r.snippet.length>500?'&hellip;':'')+'</div>';
+      s+='<div style="margin-top:.3rem"><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.url)+'</a></div>';
+      if(r.original_url)s+='<div class="r-meta" style="font-size:.75rem">Original: '+esc(r.original_url)+'</div>';
+      s+='</li>';
+    });
+    return s+'</ul></div>';
+  }
+
+  html+=renderSourceSection('Search Engines',GLOBAL_ENGINES,data.search_engines||{},'engine');
+  html+=renderSourceSection('Web Crawlers',GLOBAL_CRAWLERS,data.crawlers||{},'crawler');
+  if(!data.total)html+='<p class="empty-state">No results found. Try a broader query.</p>';
+  if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
+  resultsEl.innerHTML=html;resultsEl.style.display='block';
+}
+
 /* ===== Form handlers ===== */
 document.getElementById('form-artist').addEventListener('submit',e=>{e.preventDefault();
   doSearch('/api/search-artist',{artist:document.getElementById('artist').value.trim(),track:document.getElementById('track').value.trim()||undefined,max_playlists:parseInt(document.getElementById('max-artist').value,10)||50,include_checked_playlists:document.getElementById('include-checked-artist').checked},document.getElementById('btn-artist'),'Searching Spotify playlists',renderResult)});
@@ -597,6 +672,8 @@ document.getElementById('form-social').addEventListener('submit',e=>{e.preventDe
   doSearch('/api/search-social',{query:document.getElementById('social-query').value.trim(),max_results:parseInt(document.getElementById('max-social').value,10)||50},document.getElementById('btn-social'),'Searching social media',renderSocial)});
 document.getElementById('form-intl').addEventListener('submit',e=>{e.preventDefault();
   doSearch('/api/search-international',{query:document.getElementById('intl-query').value.trim(),max_results:parseInt(document.getElementById('max-intl').value,10)||50},document.getElementById('btn-intl'),'Searching international engines (6 regions)',renderIntl)});
+document.getElementById('form-global').addEventListener('submit',e=>{e.preventDefault();
+  doSearch('/api/search-global',{query:document.getElementById('global-query').value.trim(),max_results:parseInt(document.getElementById('max-global').value,10)||50},document.getElementById('btn-global'),'Searching top engines & web crawlers',renderGlobal)});
 </script>
 </body>
 </html>
