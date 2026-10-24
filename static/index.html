@@ -215,10 +215,6 @@
               <input class="field-input" type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200" step="10">
             </div>
           </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="include-checked-artist" name="include_checked_playlists">
-            <label for="include-checked-artist">Include all checked playlist URLs</label>
-          </div>
           <button type="submit" class="btn-primary" id="btn-artist">Search Spotify</button>
         </form>
       </div>
@@ -238,10 +234,6 @@
               <input class="field-input" type="number" id="max-song" name="max_playlists" value="50" min="10" max="200" step="10">
             </div>
           </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="include-checked-song" name="include_checked_playlists">
-            <label for="include-checked-song">Include all checked playlist URLs</label>
-          </div>
           <button type="submit" class="btn-primary" id="btn-song">Search Spotify</button>
         </form>
       </div>
@@ -260,10 +252,6 @@
               <label class="field-label" for="max-album">Max playlists</label>
               <input class="field-input" type="number" id="max-album" name="max_playlists" value="50" min="10" max="200" step="10">
             </div>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="include-checked-album" name="include_checked_playlists">
-            <label for="include-checked-album">Include all checked playlist URLs</label>
           </div>
           <button type="submit" class="btn-primary" id="btn-album">Search Spotify</button>
         </form>
@@ -443,11 +431,14 @@ function renderResult(data){
     html+='</div>';
   }
   const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
+  const found=(data.all_checked_playlists&&data.all_checked_playlists.length)?data.all_checked_playlists:(data.playlists_with_music||[]);
   const mc=data.playlists_with_music?.length||0,uc=data.users?.length||0,tc=data.track_ids_count||data.track_infos?.length||0,ac=data.artist_ids_count||0;
+  const containLabel=data.playlist_contents_available===false?'not available':String(mc);
   html+='<div class="summary-card">';
   html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
-  html+='<div class="summary-row"><strong>Mode:</strong> '+esc(data.mode)+' &middot; <strong>Playlists checked:</strong> '+data.playlists_checked+' &middot; <strong>Matches:</strong> '+mc+'</div>';
+  html+='<div class="summary-row"><strong>Mode:</strong> '+esc(data.mode)+' &middot; <strong>Playlists found:</strong> '+found.length+' &middot; <strong>Containing your music:</strong> '+containLabel+'</div>';
   html+='<div class="summary-row"><strong>Unique users:</strong> '+uc+' &middot; <strong>Tracks matched:</strong> '+tc+(ac?' &middot; <strong>Artists:</strong> '+ac:'')+'</div>';
+  if(data.playlist_contents_available===false)html+='<div class="summary-muted">Spotify did not return the songs inside these playlists, so every playlist from the search is listed.</div>';
   if(data.track_infos?.length){const tt=data.track_infos.slice(0,3).map(t=>t.name+(t.artists?' &mdash; '+t.artists:'')).join('; ');html+='<div class="summary-muted">Top tracks: '+esc(tt)+'</div>'}
   if(data.album_infos?.length){const ta=data.album_infos.slice(0,3).map(a=>a.name+(a.artist?' &mdash; '+a.artist:'')).join('; ');html+='<div class="summary-muted">Albums: '+esc(ta)+'</div>'}
   html+='</div>';
@@ -457,19 +448,19 @@ function renderResult(data){
     data.users.forEach(u=>{html+='<li class="result-card"><div class="r-title">'+esc(u.display_name)+'</div><div class="r-meta">ID: '+esc(u.id)+' &middot; '+u.playlist_count+' playlist(s)'+(u.followers!=null?' &middot; '+u.followers+' followers':'')+(u.country?' &middot; '+esc(u.country):'')+'</div><a href="'+esc(u.profile_url)+'" target="_blank" rel="noopener">'+esc(u.profile_url)+'</a></li>'});
     html+='</ul></div>';
   }
-  if(data.playlists_with_music?.length){
-    html+='<div class="section-block"><div class="section-head">Playlists <span class="pill">'+mc+'</span></div><ul class="card-list">';
-    data.playlists_with_music.forEach(p=>{
-      const tr=(p.tracks_found||[]).slice(0,10).join(', '),ex=(p.tracks_found||[]).length>10?' +'+(p.tracks_found.length-10)+' more':'';
-      html+='<li class="result-card"><div class="r-title">'+esc(p.name)+'</div><div class="r-meta">Owner: '+esc(p.owner_display_name)+' ('+esc(p.owner_id)+')'+(p.owner_country?' &middot; '+esc(p.owner_country):'')+(p.owner_followers!=null?' &middot; '+p.owner_followers+' followers':'')+'</div><div class="r-match">'+esc(tr)+esc(ex)+'</div><a href="'+esc(p.url)+'" target="_blank" rel="noopener">Open playlist</a></li>'});
+  if(found.length){
+    html+='<div class="section-block"><div class="section-head">Playlists <span class="pill">'+found.length+'</span></div><ul class="card-list">';
+    found.forEach(p=>{
+      const names=p.tracks_found||[];
+      const tr=names.slice(0,10).join(', '),ex=names.length>10?' +'+(names.length-10)+' more':'';
+      const count=p.track_count!=null?' &middot; '+p.track_count+' tracks':'';
+      html+='<li class="result-card"><div class="r-title">'+esc(p.name)+'</div><div class="r-meta">Owner: '+esc(p.owner_display_name||'Unknown')+(p.owner_id?' ('+esc(p.owner_id)+')':'')+count+(p.owner_country?' &middot; '+esc(p.owner_country):'')+(p.owner_followers!=null?' &middot; '+p.owner_followers+' followers':'')+'</div>';
+      if(tr)html+='<div class="r-match">'+esc(tr)+ex+'</div>';
+      html+='<a href="'+esc(p.url)+'" target="_blank" rel="noopener">Open playlist</a></li>';
+    });
     html+='</ul></div>';
   }
-  if(data.all_checked_playlists?.length){
-    html+='<div class="section-block"><div class="section-head">All checked playlists <span class="pill">'+data.all_checked_playlists.length+'</span></div><ul class="card-list">';
-    data.all_checked_playlists.forEach((p,i)=>{html+='<li class="result-card"><span style="color:var(--text-muted);font-size:.82rem">'+(i+1)+'.</span> '+esc(p.name)+'<br><a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+esc(p.url)+'</a></li>'});
-    html+='</ul></div>';
-  }
-  if(!mc&&!uc){html+='<p class="empty-state">No playlists found. Try increasing max playlists or searching by a different method.</p>'}
+  if(!found.length&&!uc){html+='<p class="empty-state">No playlists found. Try increasing max playlists or searching by a different method.</p>'}
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }
 
@@ -659,11 +650,11 @@ function renderGlobal(data){
 
 /* ===== Form handlers ===== */
 document.getElementById('form-artist').addEventListener('submit',e=>{e.preventDefault();
-  doSearch('/api/search-artist',{artist:document.getElementById('artist').value.trim(),track:document.getElementById('track').value.trim()||undefined,max_playlists:parseInt(document.getElementById('max-artist').value,10)||50,include_checked_playlists:document.getElementById('include-checked-artist').checked},document.getElementById('btn-artist'),'Searching Spotify playlists',renderResult)});
+  doSearch('/api/search-artist',{artist:document.getElementById('artist').value.trim(),track:document.getElementById('track').value.trim()||undefined,max_playlists:parseInt(document.getElementById('max-artist').value,10)||50},document.getElementById('btn-artist'),'Searching Spotify playlists',renderResult)});
 document.getElementById('form-song').addEventListener('submit',e=>{e.preventDefault();
-  doSearch('/api/search-song',{song:document.getElementById('song').value.trim(),max_playlists:parseInt(document.getElementById('max-song').value,10)||50,include_checked_playlists:document.getElementById('include-checked-song').checked},document.getElementById('btn-song'),'Searching Spotify playlists',renderResult)});
+  doSearch('/api/search-song',{song:document.getElementById('song').value.trim(),max_playlists:parseInt(document.getElementById('max-song').value,10)||50},document.getElementById('btn-song'),'Searching Spotify playlists',renderResult)});
 document.getElementById('form-album').addEventListener('submit',e=>{e.preventDefault();
-  doSearch('/api/search-album',{album:document.getElementById('album').value.trim(),max_playlists:parseInt(document.getElementById('max-album').value,10)||50,include_checked_playlists:document.getElementById('include-checked-album').checked},document.getElementById('btn-album'),'Searching Spotify playlists',renderResult)});
+  doSearch('/api/search-album',{album:document.getElementById('album').value.trim(),max_playlists:parseInt(document.getElementById('max-album').value,10)||50},document.getElementById('btn-album'),'Searching Spotify playlists',renderResult)});
 document.getElementById('form-youtube').addEventListener('submit',e=>{e.preventDefault();
   doSearch('/api/search-youtube',{query:document.getElementById('yt-query').value.trim(),max_results:parseInt(document.getElementById('max-yt').value,10)||50},document.getElementById('btn-youtube'),'Searching YouTube',renderYT)});
 document.getElementById('form-deep').addEventListener('submit',e=>{e.preventDefault();

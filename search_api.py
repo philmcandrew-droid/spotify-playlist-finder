@@ -2,6 +2,8 @@
 API-friendly search: run artist or song search and return JSON-serializable dict.
 Used by the web app and any other API consumers.
 """
+from __future__ import annotations
+
 from spotify_client import SpotifyClient
 from find_playlists import (
     parse_quoted,
@@ -57,7 +59,7 @@ def run_artist_search(
 
     search_queries = [artist_name]
     try:
-        playlists_checked, playlists_with_music, all_checked = _search_playlists_for_queries(
+        playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
             client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
         )
     except Exception as e:
@@ -72,12 +74,12 @@ def run_artist_search(
         "artist_ids_count": len(artist_ids),
         "playlists_checked": playlists_checked,
         "playlists_with_music": playlists_with_music,
+        "all_checked_playlists": all_checked,
+        "playlist_contents_available": contents_available,
         "users": users,
         "track_infos": [],
         "album_infos": [],
     }
-    if include_checked_playlists:
-        out["all_checked_playlists"] = all_checked
     return out
 
 
@@ -119,7 +121,7 @@ def run_song_search(
         search_queries = [song_query]
 
     try:
-        playlists_checked, playlists_with_music, all_checked = _search_playlists_for_queries(
+        playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
             client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
         )
     except Exception as e:
@@ -134,10 +136,10 @@ def run_song_search(
         "album_infos": album_infos,
         "playlists_checked": playlists_checked,
         "playlists_with_music": playlists_with_music,
+        "all_checked_playlists": all_checked,
+        "playlist_contents_available": contents_available,
         "users": users,
     }
-    if include_checked_playlists:
-        out["all_checked_playlists"] = all_checked
     return out
 
 
@@ -179,7 +181,7 @@ def run_album_search(
         search_queries = [album_query]
 
     try:
-        playlists_checked, playlists_with_music, all_checked = _search_playlists_for_queries(
+        playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
             client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
         )
     except Exception as e:
@@ -194,8 +196,8 @@ def run_album_search(
         "album_infos": album_infos,
         "playlists_checked": playlists_checked,
         "playlists_with_music": playlists_with_music,
+        "all_checked_playlists": all_checked,
+        "playlist_contents_available": contents_available,
         "users": users,
     }
-    if include_checked_playlists:
-        out["all_checked_playlists"] = all_checked
     return out

@@ -2,6 +2,8 @@
 Spotify Web API client using Client Credentials flow.
 No user login required — only needs app Client ID and Secret.
 """
+from __future__ import annotations
+
 import os
 import time
 import requests

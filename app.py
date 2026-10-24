@@ -3,6 +3,8 @@ Web app for Spotify Playlist Finder.
 Run: python app.py
 Then open http://127.0.0.1:5000
 """
+from __future__ import annotations
+
 import os
 from flask import Flask, send_from_directory, request, jsonify
 

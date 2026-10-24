@@ -20,10 +20,13 @@ Usage:
 
 Requires .env with SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET.
 """
+from __future__ import annotations
 
 import argparse
 import re
 import sys
+
+import requests
 from spotify_client import SpotifyClient
 
 
@@ -280,9 +283,18 @@ def collect_your_track_and_artist_ids(
 
 
 def playlist_contains_your_music(client: SpotifyClient, playlist_id: str, track_ids: set, artist_ids: set, market: str = "US"):
-    """Return (True, list of matching track names) if playlist contains any of your tracks."""
+    """Return (True, list of matching track names) if playlist contains any of your tracks.
+
+    Raises requests.HTTPError when Spotify refuses the track list (401/403). Callers
+    should keep the playlist and stop asking for track lists.
+    """
     try:
         items = client.get_all_playlist_tracks(playlist_id, market=market)
+    except requests.HTTPError as e:
+        status = e.response.status_code if e.response is not None else None
+        if status in (401, 403):
+            raise
+        return False, []
     except Exception:
         return False, []
 
@@ -309,8 +321,12 @@ def _search_playlists_for_queries(
     max_playlists: int,
     market: str,
     show_owner_profile: bool,
-) -> tuple[int, list, list[dict]]:
-    """Search playlists with multiple queries, dedupe by playlist ID, check for track. Returns (checked_count, playlists_with_music, all_checked_playlists)."""
+) -> tuple[int, list, list[dict], bool]:
+    """Search playlists with multiple queries, dedupe by playlist ID, check for track.
+
+    Returns (checked_count, playlists_with_music, all_checked_playlists, contents_available).
+    contents_available is False when Spotify refuses playlist track lists.
+    """
     seen_pl_ids = set()
     playlists_to_check = []  # list of (pl_id, pl_obj)
     limit = 10
@@ -341,34 +357,46 @@ def _search_playlists_for_queries(
             break
 
     playlists_with_your_music = []
+    all_checked = []
+    contents_available = True
     for pl_id, pl in playlists_to_check:
-        contains, match_names = playlist_contains_your_music(client, pl_id, track_ids, artist_ids, market)
-        if contains:
-            owner = (pl.get("owner") or {})
-            owner_id = owner.get("id") or "?"
-            owner_display = owner.get("display_name") or owner_id
-            entry = {
-                "name": pl.get("name") or "?",
-                "id": pl_id,
-                "url": pl.get("external_urls", {}).get("spotify") or f"https://open.spotify.com/playlist/{pl_id}",
-                "owner_display_name": owner_display,
-                "owner_id": owner_id,
-                "tracks_found": match_names,
-            }
-            if show_owner_profile:
-                try:
-                    profile = client.get_user_profile(owner_id)
-                    entry["owner_country"] = profile.get("country") or "—"
-                    entry["owner_followers"] = profile.get("followers", {}).get("total")
-                except Exception:
-                    entry["owner_country"] = "—"
-                    entry["owner_followers"] = None
-            playlists_with_your_music.append(entry)
-    all_checked = [
-        {"name": pl.get("name") or "?", "url": pl.get("external_urls", {}).get("spotify") or f"https://open.spotify.com/playlist/{pl_id}"}
-        for pl_id, pl in playlists_to_check
-    ]
-    return len(playlists_to_check), playlists_with_your_music, all_checked
+        owner = (pl.get("owner") or {})
+        owner_id = owner.get("id") or "?"
+        owner_display = owner.get("display_name") or owner_id
+        track_total = (pl.get("items") or pl.get("tracks") or {}).get("total")
+        images = pl.get("images") or []
+        image = images[0].get("url") if images and isinstance(images[0], dict) else None
+        entry = {
+            "name": pl.get("name") or "?",
+            "id": pl_id,
+            "url": (pl.get("external_urls") or {}).get("spotify") or f"https://open.spotify.com/playlist/{pl_id}",
+            "owner_display_name": owner_display,
+            "owner_id": owner_id,
+            "track_count": track_total,
+            "image": image,
+            "tracks_found": [],
+        }
+        if contents_available:
+            try:
+                contains, match_names = playlist_contains_your_music(
+                    client, pl_id, track_ids, artist_ids, market
+                )
+            except requests.HTTPError:
+                contents_available = False
+                contains, match_names = False, []
+            if contains:
+                entry["tracks_found"] = match_names
+                if show_owner_profile:
+                    try:
+                        profile = client.get_user_profile(owner_id)
+                        entry["owner_country"] = profile.get("country") or "—"
+                        entry["owner_followers"] = profile.get("followers", {}).get("total")
+                    except Exception:
+                        entry["owner_country"] = "—"
+                        entry["owner_followers"] = None
+                playlists_with_your_music.append(entry)
+        all_checked.append(entry)
+    return len(playlists_to_check), playlists_with_your_music, all_checked, contents_available
 
 
 def main():
@@ -412,7 +440,7 @@ def main():
             search_queries = [song_query]
         print(f"  Track(s): {len(track_ids)}, Artist(s): {len(artist_ids)}")
         print(f"  Searching playlists for: {', '.join(search_queries[:3])}... (max {args.max_playlists} playlists)")
-        playlists_checked, playlists_with_your_music, all_checked_playlists = _search_playlists_for_queries(
+        playlists_checked, playlists_with_your_music, all_checked_playlists, _contents_available = _search_playlists_for_queries(
             client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile
         )
     else:
@@ -433,7 +461,7 @@ def main():
         album_infos = []
         search_queries = [artist_name]
         print(f"\nSearching playlists for: {search_queries[0]} (max {args.max_playlists} playlists)...")
-        playlists_checked, playlists_with_your_music, all_checked_playlists = _search_playlists_for_queries(
+        playlists_checked, playlists_with_your_music, all_checked_playlists, _contents_available = _search_playlists_for_queries(
             client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile
         )
 
