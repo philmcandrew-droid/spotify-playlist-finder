@@ -27,18 +27,8 @@ import re
 import sys
 
 import requests
+from query_parse import parse_quoted, playlist_name_score, playlist_search_queries
 from spotify_client import SpotifyClient
-
-
-def parse_quoted(s: str) -> tuple[str, bool]:
-    """
-    If s is wrapped in double quotes, return (inner_stripped, True) for exact match.
-    Otherwise return (stripped, False).
-    """
-    s = (s or "").strip()
-    if len(s) >= 2 and s.startswith('"') and s.endswith('"'):
-        return s[1:-1].strip(), True
-    return s, False
 
 
 def extract_track_id(s: str) -> str | None:
@@ -321,20 +311,24 @@ def _search_playlists_for_queries(
     max_playlists: int,
     market: str,
     show_owner_profile: bool,
+    exact_phrase: str | None = None,
 ) -> tuple[int, list, list[dict], bool]:
     """Search playlists with multiple queries, dedupe by playlist ID, check for track.
 
     Returns (checked_count, playlists_with_music, all_checked_playlists, contents_available).
     contents_available is False when Spotify refuses playlist track lists.
     """
+    phrase = (exact_phrase or (search_queries[0] if search_queries else "") or "").strip()
+    fetch_cap = min(max(max_playlists * 4, max_playlists), 100)
+    queries = playlist_search_queries(search_queries, exact=bool(exact_phrase))
     seen_pl_ids = set()
-    playlists_to_check = []  # list of (pl_id, pl_obj)
+    playlists_to_check = []  # list of (pl_id, pl_obj, score)
     limit = 10
-    for q in search_queries:
-        if len(playlists_to_check) >= max_playlists:
+    for q in queries:
+        if len(playlists_to_check) >= fetch_cap:
             break
         offset = 0
-        while len(playlists_to_check) < max_playlists:
+        while len(playlists_to_check) < fetch_cap:
             try:
                 result = client.search(q, type="playlist", limit=limit, offset=offset)
             except Exception as e:
@@ -344,22 +338,30 @@ def _search_playlists_for_queries(
             if not playlists:
                 break
             for pl in playlists:
-                pl_id = (pl or {}).get("id")
-                if pl_id and pl_id not in seen_pl_ids:
-                    seen_pl_ids.add(pl_id)
-                    playlists_to_check.append((pl_id, pl))
-                if len(playlists_to_check) >= max_playlists:
+                if not pl:
+                    continue
+                pl_id = pl.get("id")
+                if not pl_id or pl_id in seen_pl_ids:
+                    continue
+                score = playlist_name_score(pl.get("name") or "", phrase)
+                if exact_phrase and score < 200:
+                    continue
+                seen_pl_ids.add(pl_id)
+                playlists_to_check.append((pl_id, pl, score, len(playlists_to_check)))
+                if len(playlists_to_check) >= fetch_cap:
                     break
             if not result.get("playlists", {}).get("next"):
                 break
             offset += limit
-        if len(playlists_to_check) >= max_playlists:
+        if len(playlists_to_check) >= fetch_cap:
             break
+    playlists_to_check.sort(key=lambda item: (-item[2], item[3]))
+    playlists_to_check = playlists_to_check[:max_playlists]
 
     playlists_with_your_music = []
     all_checked = []
     contents_available = True
-    for pl_id, pl in playlists_to_check:
+    for pl_id, pl, score, _order in playlists_to_check:
         owner = (pl.get("owner") or {})
         owner_id = owner.get("id") or "?"
         owner_display = owner.get("display_name") or owner_id
@@ -375,6 +377,8 @@ def _search_playlists_for_queries(
             "track_count": track_total,
             "image": image,
             "tracks_found": [],
+            "name_score": score,
+            "name_match": score >= 200,
         }
         if contents_available:
             try:
@@ -441,7 +445,7 @@ def main():
         print(f"  Track(s): {len(track_ids)}, Artist(s): {len(artist_ids)}")
         print(f"  Searching playlists for: {', '.join(search_queries[:3])}... (max {args.max_playlists} playlists)")
         playlists_checked, playlists_with_your_music, all_checked_playlists, _contents_available = _search_playlists_for_queries(
-            client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile
+            client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile, exact_phrase
         )
     else:
         # --- By artist (original flow) ---
@@ -462,7 +466,7 @@ def main():
         search_queries = [artist_name]
         print(f"\nSearching playlists for: {search_queries[0]} (max {args.max_playlists} playlists)...")
         playlists_checked, playlists_with_your_music, all_checked_playlists, _contents_available = _search_playlists_for_queries(
-            client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile
+            client, search_queries, track_ids, artist_ids, args.max_playlists, args.market, args.show_owner_profile, exact_phrase
         )
 
     # Unique users

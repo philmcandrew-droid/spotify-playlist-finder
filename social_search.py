@@ -6,6 +6,8 @@ import re
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from query_parse import parse_quoted as _parse_quoted
+
 
 PLATFORMS = {
     "facebook": {
@@ -25,13 +27,6 @@ PLATFORMS = {
         "sites": ["twitter.com", "x.com"],
     },
 }
-
-
-def _parse_quoted(s: str) -> tuple[str, bool]:
-    s = (s or "").strip()
-    if len(s) >= 2 and s.startswith('"') and s.endswith('"'):
-        return s[1:-1].strip(), True
-    return s, False
 
 
 def run_social_search(query: str, max_results: int = 25) -> dict[str, Any]:

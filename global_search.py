@@ -21,19 +21,14 @@ from urllib.parse import quote as url_quote
 
 import requests
 
+from query_parse import parse_quoted as _parse_quoted
+
 _TIMEOUT = 15
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
        "AppleWebKit/537.36 (KHTML, like Gecko) "
        "Chrome/124.0.0.0 Safari/537.36")
 
 WAYBACK_CDX = "https://web.archive.org/cdx/search/cdx"
-
-
-def _parse_quoted(s: str) -> tuple[str, bool]:
-    s = (s or "").strip()
-    if len(s) >= 2 and s.startswith('"') and s.endswith('"'):
-        return s[1:-1].strip(), True
-    return s, False
 
 
 def _filter_exact(items: list[dict], phrase_lower: str) -> list[dict]:

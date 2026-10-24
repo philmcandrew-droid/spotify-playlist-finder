@@ -7,18 +7,33 @@ from typing import Any
 
 import requests
 
+from query_parse import parse_quoted, phrase_in_text
+
 
 def run_youtube_search(query: str, max_results: int = 10) -> dict[str, Any]:
     """Return JSON-serializable dict with mode, query, videos[], and optional source."""
-    q = (query or "").strip()
+    raw = (query or "").strip()
+    q, is_exact = parse_quoted(raw)
     if not q:
         return {"error": "Search query is required"}
     n = max(1, min(int(max_results), 100))
+    search_q = f'"{q}"' if is_exact else q
 
     api_key = (os.environ.get("YOUTUBE_API_KEY") or "").strip()
     if api_key:
-        return _search_data_api(q, n, api_key)
-    return _search_fallback(q, n)
+        result = _search_data_api(search_q, n, api_key)
+    else:
+        result = _search_fallback(search_q, n)
+    if "error" in result:
+        return result
+    if is_exact:
+        result["videos"] = [
+            v for v in (result.get("videos") or [])
+            if phrase_in_text(v.get("title") or "", v.get("channel_title") or "", phrase=q)
+        ]
+    result["query"] = raw
+    result["exact_match"] = is_exact
+    return result
 
 
 def _search_data_api(query: str, max_results: int, api_key: str) -> dict[str, Any]:

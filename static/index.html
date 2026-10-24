@@ -6,89 +6,117 @@
   <title>Ultimate Search</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --bg:#050507;--bg2:#0a0a0f;
-      --surface:#111118;--surface2:#16161f;--surface3:#1c1c28;
-      --border:#232333;--border-hover:#33334a;
-      --text:#ececf1;--text2:#c5c5d2;--text-muted:#7e7e91;
-      --accent:#6d5cff;--accent2:#8b7dff;--accent-glow:rgba(109,92,255,.15);
-      --green:#34d399;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--pink:#f472b6;--teal:#2dd4bf;
-      --radius:12px;--radius-sm:8px;--radius-xs:6px;
+      --bg:#F4F4F5;--bg2:#FFFFFF;
+      --surface:#FFFFFF;--surface2:#F4F4F5;--surface3:#E4E4E7;
+      --border:#E4E4E7;--border-hover:#18181B;
+      --text:#18181B;--text2:#3F3F46;--text-muted:#71717A;
+      --primary:#18181B;--accent:#18181B;--accent-ink:#FFFFFF;--accent2:#18181B;
+      --green:#047857;--red:#991B1B;--yellow:#92400E;--blue:#1D4ED8;--pink:#9D174D;--teal:#0F766E;
+      --radius:20px;--radius-sm:12px;--radius-xs:8px;
+      --shadow:0 1px 2px rgba(24,24,27,.04),0 12px 32px rgba(24,24,27,.06);
     }
     html{scroll-behavior:smooth}
-    body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+    body{
+      font-family:'Work Sans',system-ui,-apple-system,sans-serif;
+      background:var(--bg);
+      color:var(--text);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;
+    }
+    :focus{outline:none}
+    :focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+    @media (prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+    }
 
     /* Layout */
-    .app{max-width:860px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
-    @media(max-width:640px){.app{padding:1.5rem 1rem 3rem}}
+    .app{max-width:760px;margin:0 auto;padding:3.5rem 1.5rem 4rem}
+    @media(max-width:640px){.app{padding:1.75rem 1rem 3rem}}
 
     /* Header */
-    .header{text-align:center;margin-bottom:2.5rem}
-    .logo{font-size:2.2rem;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#6d5cff 0%,#a78bfa 50%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block}
-    .tagline{color:var(--text-muted);font-size:.95rem;margin-top:.4rem;max-width:520px;margin-left:auto;margin-right:auto}
-    .tagline code{font-family:'JetBrains Mono',monospace;font-size:.82em;background:var(--surface2);padding:.15rem .4rem;border-radius:var(--radius-xs);border:1px solid var(--border);color:var(--accent2)}
-
-    /* Navigation tabs */
-    .nav{display:flex;gap:.35rem;margin-bottom:2rem;flex-wrap:wrap;justify-content:center;padding:.5rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
-    .nav-btn{
-      padding:.55rem 1rem;border:none;background:transparent;color:var(--text-muted);
-      font-family:inherit;font-size:.82rem;font-weight:500;cursor:pointer;
-      border-radius:var(--radius-sm);transition:all .2s;white-space:nowrap;
+    .header{margin-bottom:1.75rem}
+    .brand{display:flex;align-items:center;gap:.85rem}
+    .mark{
+      width:44px;height:44px;border-radius:14px;background:var(--primary);color:#fff;
+      display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
     }
-    .nav-btn:hover{color:var(--text);background:var(--surface2)}
-    .nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 12px rgba(109,92,255,.35)}
+    .mark svg{display:block}
+    .logo{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:600;letter-spacing:-.03em;color:var(--text);line-height:1.1}
+    .tagline{color:var(--text-muted);font-size:1rem;margin-top:.7rem}
+    @media(max-width:640px){.logo{font-size:1.75rem}}
+
+    /* One search card */
+    .composer{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:1.35rem 1.35rem 1.15rem;box-shadow:var(--shadow);
+    }
+    .composer-label{font-size:.82rem;font-weight:500;color:var(--text-muted);margin-bottom:.5rem}
+
+    /* Source chips */
+    .nav{display:flex;gap:.5rem;margin-bottom:1.15rem;flex-wrap:wrap}
+    .nav-btn{
+      min-height:40px;padding:.5rem 1rem;border:1px solid var(--border);background:#fff;color:var(--text);
+      font-family:inherit;font-size:.9rem;font-weight:500;cursor:pointer;
+      border-radius:999px;transition:background-color .15s,color .15s,border-color .15s;
+    }
+    .nav-btn:hover{background:var(--surface2)}
+    .nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
     /* Panels */
-    .panel{display:none;animation:fadeIn .25s ease}
+    .panel{display:none}
     .panel.active{display:block}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-    /* Sub-tabs inside Spotify panel */
-    .sub-nav{display:flex;gap:.3rem;margin-bottom:1.25rem}
-    .sub-btn{
-      padding:.45rem .9rem;border:1px solid var(--border);background:transparent;color:var(--text-muted);
-      font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;
-      border-radius:var(--radius-xs);transition:all .2s;
+    /* Looking-for control */
+    .sub-nav{
+      display:inline-flex;gap:.25rem;margin-bottom:1.15rem;padding:.25rem;
+      background:var(--surface2);border-radius:999px;
     }
-    .sub-btn:hover{color:var(--text);border-color:var(--border-hover);background:var(--surface2)}
-    .sub-btn.active{background:var(--surface3);color:var(--text);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow)}
-    .sub-panel{display:none;animation:fadeIn .2s ease}
+    .sub-btn{
+      min-height:36px;padding:.4rem .9rem;border:1px solid transparent;background:transparent;color:var(--text);
+      font-family:inherit;font-size:.9rem;font-weight:500;cursor:pointer;border-radius:999px;
+    }
+    .sub-btn:hover{background:#fff}
+    .sub-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .sub-panel{display:none}
     .sub-panel.active{display:block}
 
     /* Form elements */
-    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
-    .field{margin-bottom:1.25rem}
+    .form-card{background:transparent;border:0;padding:0;box-shadow:none}
+    .field{margin-bottom:1rem}
     .field:last-of-type{margin-bottom:0}
-    .field-label{display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.04em}
+    .field-label{display:block;font-size:.82rem;font-weight:500;color:var(--text-muted);margin-bottom:.4rem}
     .field-input{
-      width:100%;padding:.7rem 1rem;font-family:inherit;font-size:.95rem;
-      background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);
-      color:var(--text);transition:border-color .2s,box-shadow .2s;
+      width:100%;padding:.8rem 1rem;font-family:inherit;font-size:1rem;
+      background:#fff;border:1px solid #D4D4D8;border-radius:12px;
+      color:var(--text);transition:border-color .15s;
     }
-    .field-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-    .field-input::placeholder{color:var(--text-muted)}
-    .field-hint{font-size:.78rem;color:var(--text-muted);margin-top:.35rem;line-height:1.5}
-    .field-row{display:flex;gap:1rem;flex-wrap:wrap}
-    .field-row .field{flex:1;min-width:140px}
-
-    .checkbox-row{display:flex;align-items:center;gap:.5rem;margin-top:.75rem}
-    .checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
-    .checkbox-row label{font-size:.85rem;color:var(--text2);cursor:pointer}
+    .field-input:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-color:var(--primary)}
+    .field-input::placeholder{color:#A1A1AA}
+    .field-hint{font-size:.82rem;color:var(--text-muted);margin-bottom:.45rem;line-height:1.45}
+    .actions{
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.25rem;
+    }
+    .limit{display:flex;align-items:center;gap:.5rem;color:var(--text-muted);font-size:.9rem}
+    .limit .field-label{margin:0}
+    .limit .field-input{width:4.5rem;padding:.55rem .7rem;text-align:center}
+    @media(max-width:640px){
+      .actions{flex-direction:column;align-items:stretch}
+      .btn-primary{width:100%}
+    }
 
     /* Buttons */
     .btn-primary{
-      display:inline-flex;align-items:center;gap:.5rem;
-      padding:.75rem 1.6rem;font-family:inherit;font-size:.9rem;font-weight:600;
-      background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
-      border:none;border-radius:var(--radius-sm);cursor:pointer;
-      margin-top:1.25rem;transition:all .2s;box-shadow:0 2px 12px rgba(109,92,255,.25);
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:44px;padding:.7rem 1.35rem;font-family:'Work Sans',sans-serif;font-size:.95rem;font-weight:500;
+      background:var(--primary);color:#fff;
+      border:none;border-radius:12px;cursor:pointer;
+      transition:background-color .15s;
     }
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(109,92,255,.4)}
-    .btn-primary:active{transform:translateY(0)}
-    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+    .btn-primary:hover{background:#3F3F46;color:#fff}
+    .btn-primary:disabled{opacity:.55;cursor:not-allowed}
 
     /* Loading */
     .loading-bar{margin-top:1.5rem;display:none;align-items:center;gap:.75rem;color:var(--text-muted);font-size:.9rem}
@@ -97,16 +125,16 @@
     @keyframes spin{to{transform:rotate(360deg)}}
 
     /* Error */
-    .error-box{margin-top:1rem;padding:1rem 1.25rem;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);color:var(--red);font-size:.9rem;display:none}
+    .error-box{margin-top:1rem;padding:1rem 1.25rem;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);color:var(--red);font-size:.9rem;display:none}
 
     /* Results area */
     .results-area{margin-top:2rem;display:none}
 
     /* Summary card */
+    .results-title{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:600;letter-spacing:-.02em;margin-bottom:.35rem}
     .summary-card{
-      padding:1.25rem 1.5rem;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
-      border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.75rem;
-      font-size:.9rem;color:var(--text2);line-height:1.7;
+      padding:0;background:transparent;border:0;border-radius:0;margin-bottom:1rem;
+      font-size:.9rem;color:var(--text2);line-height:1.6;box-shadow:none;
     }
     .summary-card strong{color:var(--text)}
     .summary-card .summary-row{margin-bottom:.3rem}
@@ -117,45 +145,42 @@
       display:inline-block;font-size:.7rem;font-weight:700;text-transform:uppercase;
       letter-spacing:.05em;padding:.2rem .5rem;border-radius:var(--radius-xs);vertical-align:middle;
     }
-    .badge-exact{background:rgba(109,92,255,.2);color:var(--accent2);margin-left:.4rem}
-    .badge-forum{background:rgba(109,92,255,.2);color:#c4b5fd}
-    .badge-web{background:rgba(52,211,153,.15);color:var(--green)}
-    .badge-archive_org{background:rgba(251,191,36,.15);color:var(--yellow)}
-    .badge-wayback{background:rgba(96,165,250,.15);color:var(--blue)}
-    .badge-facebook{background:rgba(59,89,152,.25);color:#8b9dc3}
-    .badge-instagram{background:rgba(225,48,108,.2);color:var(--pink)}
-    .badge-tiktok{background:rgba(0,242,234,.15);color:var(--teal)}
-    .badge-twitter{background:rgba(160,160,160,.2);color:#d4d4d4}
-    .badge-intl{background:rgba(99,102,241,.18);color:#a5b4fc}
-    .badge-engine{background:rgba(96,165,250,.15);color:var(--blue)}
-    .badge-crawler{background:rgba(251,191,36,.15);color:var(--yellow)}
-    .badge-news{background:rgba(244,114,182,.15);color:var(--pink)}
+    .badge-exact{background:#D1FAE5;color:#065F46;margin-left:.4rem}
+    .badge-forum{background:#E0E7FF;color:#3730A3}
+    .badge-web{background:#D1FAE5;color:var(--green)}
+    .badge-archive_org{background:#FEF3C7;color:var(--yellow)}
+    .badge-wayback{background:#DBEAFE;color:var(--blue)}
+    .badge-facebook{background:#DBEAFE;color:#1E3A8A}
+    .badge-instagram{background:#FCE7F3;color:var(--pink)}
+    .badge-tiktok{background:#F1F5F9;color:#0F172A}
+    .badge-twitter{background:#F1F5F9;color:#334155}
+    .badge-intl{background:#E0E7FF;color:#3730A3}
+    .badge-engine{background:#DBEAFE;color:var(--blue)}
+    .badge-crawler{background:#FEF3C7;color:var(--yellow)}
+    .badge-news{background:#FCE7F3;color:var(--pink)}
 
     /* Section headers */
     .section-block{margin-bottom:2rem}
     .section-head{
-      font-size:1rem;font-weight:700;color:var(--text);
-      display:flex;align-items:center;gap:.6rem;
-      margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);
+      font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:600;color:var(--text);
+      display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;
     }
     .section-head .pill{
-      font-size:.75rem;font-weight:600;color:var(--text-muted);
-      background:var(--surface2);padding:.2rem .55rem;border-radius:20px;
+      font-family:'Work Sans',sans-serif;font-size:.75rem;font-weight:600;color:var(--text);
+      background:#fff;border:1px solid var(--border);padding:.1rem .5rem;border-radius:999px;
     }
 
     /* Result cards */
-    .card-list{list-style:none}
+    .card-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;background:var(--surface2);border-radius:16px;padding:.7rem}
     .result-card{
-      padding:1rem 1.15rem;background:var(--surface);border:1px solid var(--border);
-      border-radius:var(--radius-sm);margin-bottom:.5rem;
-      transition:border-color .15s,background .15s;
+      padding:.9rem 1rem;background:#fff;border:1px solid var(--border);
+      border-radius:12px;box-shadow:none;
     }
-    .result-card:hover{border-color:var(--border-hover);background:var(--surface2)}
-    .result-card .r-title{font-weight:600;font-size:.92rem;margin-bottom:.2rem}
-    .result-card .r-meta{font-size:.82rem;color:var(--text-muted);margin-top:.2rem}
+    .result-card .r-title{font-family:'Outfit',sans-serif;font-weight:600;font-size:1rem;margin-bottom:.15rem;color:var(--text)}
+    .result-card .r-meta{font-size:.82rem;color:var(--text-muted);margin-top:.15rem}
     .result-card .r-match{font-size:.8rem;color:var(--green);margin-top:.25rem}
-    .result-card a{color:var(--accent2);text-decoration:none;font-size:.82rem;word-break:break-all}
-    .result-card a:hover{text-decoration:underline;color:#fff}
+    .result-card a{color:var(--text);text-decoration:none;font-size:.9rem;font-weight:500;word-break:break-all}
+    .result-card a:hover{text-decoration:underline}
 
     /* YouTube cards */
     .yt-row{display:flex;gap:1rem;align-items:flex-start}
@@ -165,6 +190,12 @@
 
     /* Empty state */
     .empty-state{color:var(--text-muted);font-size:.88rem;padding:.5rem 0 1rem}
+    .badge-name{background:#E4E4E7;color:#18181B;margin-left:.4rem}
+
+    .search-tips{margin-top:1.25rem;color:var(--text-muted);font-size:.88rem}
+    .search-tips-title{font-family:'Outfit',sans-serif;font-weight:600;color:var(--text);margin-bottom:.4rem}
+    .search-tips ul{padding-left:1.1rem;display:flex;flex-direction:column;gap:.3rem}
+    .search-tips code{font-family:inherit;background:#fff;border:1px solid var(--border);border-radius:6px;padding:.05rem .35rem}
 
     /* Subtle scrollbar */
     ::-webkit-scrollbar{width:6px}
@@ -176,46 +207,53 @@
 <body>
 <div class="app">
   <header class="header">
-    <div class="logo">Ultimate Search</div>
-    <p class="tagline">Search across Spotify, YouTube, social media, forums, archives, international engines, and the top global search engines &amp; web crawlers. Use <code>"quotes"</code> for exact match.</p>
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <h1 class="logo">Ultimate Search</h1>
+    </div>
+    <p class="tagline">Find playlists, videos, and mentions. Start with a name.</p>
   </header>
 
-  <nav class="nav">
-    <button type="button" class="nav-btn active" data-panel="spotify">Spotify</button>
-    <button type="button" class="nav-btn" data-panel="youtube">YouTube</button>
-    <button type="button" class="nav-btn" data-panel="deep">Deep search</button>
-    <button type="button" class="nav-btn" data-panel="social">Social</button>
-    <button type="button" class="nav-btn" data-panel="intl">International</button>
-    <button type="button" class="nav-btn" data-panel="global">Global</button>
+  <div class="composer">
+  <p class="composer-label">Search in</p>
+  <nav class="nav" aria-label="Search sources">
+    <button type="button" class="nav-btn active" data-panel="spotify" aria-pressed="true">Spotify</button>
+    <button type="button" class="nav-btn" data-panel="youtube" aria-pressed="false">YouTube</button>
+    <button type="button" class="nav-btn" data-panel="deep" aria-pressed="false">Deep search</button>
+    <button type="button" class="nav-btn" data-panel="social" aria-pressed="false">Social</button>
+    <button type="button" class="nav-btn" data-panel="intl" aria-pressed="false">International</button>
+    <button type="button" class="nav-btn" data-panel="global" aria-pressed="false">Global</button>
   </nav>
 
   <!-- ===== SPOTIFY (Artist / Song / Album) ===== -->
   <div id="panel-spotify" class="panel active">
-    <div class="sub-nav">
-      <button type="button" class="sub-btn active" data-sub="artist">Artist</button>
-      <button type="button" class="sub-btn" data-sub="song">Song</button>
-      <button type="button" class="sub-btn" data-sub="album">Album</button>
+    <p class="composer-label">Looking for</p>
+    <div class="sub-nav" role="group" aria-label="Looking for">
+      <button type="button" class="sub-btn active" data-sub="artist" aria-pressed="true">Artist</button>
+      <button type="button" class="sub-btn" data-sub="song" aria-pressed="false">Song</button>
+      <button type="button" class="sub-btn" data-sub="album" aria-pressed="false">Album</button>
     </div>
 
     <div id="sub-artist" class="sub-panel active">
       <div class="form-card">
         <form id="form-artist">
           <div class="field">
+            <div class="field-hint">Shortest real name works best. Add "quotes" to keep only matching titles.</div>
             <label class="field-label" for="artist">Artist name</label>
-            <input class="field-input" type="text" id="artist" name="artist" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-            <div class="field-hint">Wrap in double quotes for exact match only.</div>
+            <input class="field-input" type="text" id="artist" name="artist" placeholder='Phil McAndrew or "Phil McAndrew"' required>
           </div>
           <div class="field">
             <label class="field-label" for="track">Specific track (optional)</label>
             <input class="field-input" type="text" id="track" name="track" placeholder="e.g. Free">
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="max-artist">Max playlists</label>
-              <input class="field-input" type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200" step="10">
+          <div class="actions">
+            <div class="limit">
+              <label class="field-label" for="max-artist" >Check up to</label>
+              <input class="field-input" type="number" id="max-artist" name="max_playlists" value="50" min="10" max="200" step="10" aria-label="Playlists to check">
+              <span>playlists</span>
             </div>
+            <button type="submit" class="btn-primary" id="btn-artist">Search</button>
           </div>
-          <button type="submit" class="btn-primary" id="btn-artist">Search Spotify</button>
         </form>
       </div>
     </div>
@@ -225,16 +263,17 @@
         <form id="form-song">
           <div class="field">
             <label class="field-label" for="song">Song</label>
-            <input class="field-input" type="text" id="song" name="song" placeholder='e.g. Blinding Lights, "Artist - Track", or Spotify URL' required>
-            <div class="field-hint">Track name, "Artist - Track", or paste a Spotify track URL.</div>
+            <div class="field-hint">Song name, Artist - Track, a Spotify link, or "quotes" for that exact title.</div>
+            <input class="field-input" type="text" id="song" name="song" placeholder='Free or "Free"' required>
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="max-song">Max playlists</label>
-              <input class="field-input" type="number" id="max-song" name="max_playlists" value="50" min="10" max="200" step="10">
+          <div class="actions">
+            <div class="limit">
+              <label class="field-label" for="max-song" >Check up to</label>
+              <input class="field-input" type="number" id="max-song" name="max_playlists" value="50" min="10" max="200" step="10" aria-label="Playlists to check">
+              <span>playlists</span>
             </div>
+            <button type="submit" class="btn-primary" id="btn-song">Search</button>
           </div>
-          <button type="submit" class="btn-primary" id="btn-song">Search Spotify</button>
         </form>
       </div>
     </div>
@@ -244,16 +283,17 @@
         <form id="form-album">
           <div class="field">
             <label class="field-label" for="album">Album</label>
-            <input class="field-input" type="text" id="album" name="album" placeholder='e.g. Free, "Phil McAndrew - Free", or Spotify URL' required>
-            <div class="field-hint">Album name, "Artist - Album", or paste a Spotify album URL.</div>
+            <div class="field-hint">Album name, Artist - Album, a Spotify link, or "quotes" for that exact title.</div>
+            <input class="field-input" type="text" id="album" name="album" placeholder='Free or "Free"' required>
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="max-album">Max playlists</label>
-              <input class="field-input" type="number" id="max-album" name="max_playlists" value="50" min="10" max="200" step="10">
+          <div class="actions">
+            <div class="limit">
+              <label class="field-label" for="max-album" >Check up to</label>
+              <input class="field-input" type="number" id="max-album" name="max_playlists" value="50" min="10" max="200" step="10" aria-label="Playlists to check">
+              <span>playlists</span>
             </div>
+            <button type="submit" class="btn-primary" id="btn-album">Search</button>
           </div>
-          <button type="submit" class="btn-primary" id="btn-album">Search Spotify</button>
         </form>
       </div>
     </div>
@@ -265,16 +305,17 @@
       <form id="form-youtube">
         <div class="field">
           <label class="field-label" for="yt-query">YouTube search</label>
-          <input class="field-input" type="text" id="yt-query" name="query" placeholder="e.g. artist name live session, music video" required>
-          <div class="field-hint">Uses youtube-search by default. Set YOUTUBE_API_KEY in .env for the official Data API.</div>
+          <div class="field-hint">A name, a song, or a live session. "Quotes" keep titles that include that phrase.</div>
+          <input class="field-input" type="text" id="yt-query" name="query" placeholder='Phil McAndrew live or "Phil McAndrew"' required>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="max-yt">Max results</label>
-            <input class="field-input" type="number" id="max-yt" name="max_results" value="50" min="1" max="100">
+        <div class="actions">
+          <div class="limit">
+            <label class="field-label" for="max-yt" >Up to</label>
+            <input class="field-input" type="number" id="max-yt" name="max_results" value="50" min="1" max="100" aria-label="Maximum results">
+            <span>videos</span>
           </div>
+          <button type="submit" class="btn-primary" id="btn-youtube">Search</button>
         </div>
-        <button type="submit" class="btn-primary" id="btn-youtube">Search YouTube</button>
       </form>
     </div>
   </div>
@@ -285,16 +326,17 @@
       <form id="form-deep">
         <div class="field">
           <label class="field-label" for="deep-query">Deep search</label>
-          <input class="field-input" type="text" id="deep-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-          <div class="field-hint">Searches Reddit, Last.fm, RateYourMusic, Discogs, Genius, forums, Internet Archive, and Wayback Machine.</div>
+          <div class="field-hint">Forums, archives, and music sites. "Quotes" keep results that include that name.</div>
+          <input class="field-input" type="text" id="deep-query" name="query" placeholder="Name or phrase" required>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="max-deep">Max results per source</label>
-            <input class="field-input" type="number" id="max-deep" name="max_results" value="50" min="1" max="100">
+        <div class="actions">
+          <div class="limit">
+            <label class="field-label" for="max-deep" >Up to</label>
+            <input class="field-input" type="number" id="max-deep" name="max_results" value="50" min="1" max="100" aria-label="Maximum results per source">
+            <span>per source</span>
           </div>
+          <button type="submit" class="btn-primary" id="btn-deep">Search</button>
         </div>
-        <button type="submit" class="btn-primary" id="btn-deep">Deep search</button>
       </form>
     </div>
   </div>
@@ -305,16 +347,17 @@
       <form id="form-social">
         <div class="field">
           <label class="field-label" for="social-query">Social media search</label>
-          <input class="field-input" type="text" id="social-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-          <div class="field-hint">Searches Facebook, Instagram, TikTok, and Twitter/X for public pages, posts, profiles, and videos.</div>
+          <div class="field-hint">Public pages on Facebook, Instagram, TikTok, and X. "Quotes" keep matching titles.</div>
+          <input class="field-input" type="text" id="social-query" name="query" placeholder="Name or phrase" required>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="max-social">Max results per platform</label>
-            <input class="field-input" type="number" id="max-social" name="max_results" value="50" min="1" max="100">
+        <div class="actions">
+          <div class="limit">
+            <label class="field-label" for="max-social" >Up to</label>
+            <input class="field-input" type="number" id="max-social" name="max_results" value="50" min="1" max="100" aria-label="Maximum results per platform">
+            <span>per platform</span>
           </div>
+          <button type="submit" class="btn-primary" id="btn-social">Search</button>
         </div>
-        <button type="submit" class="btn-primary" id="btn-social">Search social</button>
       </form>
     </div>
   </div>
@@ -325,16 +368,17 @@
       <form id="form-intl">
         <div class="field">
           <label class="field-label" for="intl-query">International search</label>
-          <input class="field-input" type="text" id="intl-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-          <div class="field-hint">Yandex, VK (Russia) &middot; Baidu, Bilibili, Douban (China) &middot; Yahoo Japan, Nico Nico (Japan) &middot; Naver, Melon (Korea) &middot; Letras, Vagalume (South America) &middot; Triple J, Stuff.co.nz (AU/NZ).</div>
+          <div class="field-hint">Russia, China, Japan, Korea, South America, and Australia / New Zealand. "Quotes" keep matching titles.</div>
+          <input class="field-input" type="text" id="intl-query" name="query" placeholder="Name or phrase" required>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="max-intl">Max results per region</label>
-            <input class="field-input" type="number" id="max-intl" name="max_results" value="50" min="1" max="100">
+        <div class="actions">
+          <div class="limit">
+            <label class="field-label" for="max-intl" >Up to</label>
+            <input class="field-input" type="number" id="max-intl" name="max_results" value="50" min="1" max="100" aria-label="Maximum results per region">
+            <span>per region</span>
           </div>
+          <button type="submit" class="btn-primary" id="btn-intl">Search</button>
         </div>
-        <button type="submit" class="btn-primary" id="btn-intl">Search international</button>
       </form>
     </div>
   </div>
@@ -345,23 +389,34 @@
       <form id="form-global">
         <div class="field">
           <label class="field-label" for="global-query">Global search</label>
-          <input class="field-input" type="text" id="global-query" name="query" placeholder='e.g. Phil McAndrew or "Phil McAndrew"' required>
-          <div class="field-hint">Yahoo, DuckDuckGo (Bing-powered), Mojeek, latest news + web crawlers (Common Crawl, Wayback Machine, Marginalia). Set <code>GOOGLE_API_KEY</code> &amp; <code>GOOGLE_CSE_ID</code> in .env for Google results (free 100/day).</div>
+          <div class="field-hint">Yahoo, DuckDuckGo, news, and web archives. "Quotes" keep matching titles.</div>
+          <input class="field-input" type="text" id="global-query" name="query" placeholder="Name or phrase" required>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label" for="max-global">Max results per source</label>
-            <input class="field-input" type="number" id="max-global" name="max_results" value="50" min="1" max="100">
+        <div class="actions">
+          <div class="limit">
+            <label class="field-label" for="max-global" >Up to</label>
+            <input class="field-input" type="number" id="max-global" name="max_results" value="50" min="1" max="100" aria-label="Maximum results per source">
+            <span>per source</span>
           </div>
+          <button type="submit" class="btn-primary" id="btn-global">Search</button>
         </div>
-        <button type="submit" class="btn-primary" id="btn-global">Search globally</button>
       </form>
     </div>
   </div>
+  </div>
 
-  <div id="loading" class="loading-bar"><div class="spinner"></div><span id="loading-text">Searching</span></div>
-  <div id="error" class="error-box"></div>
-  <div id="results" class="results-area"></div>
+  <aside class="search-tips" aria-label="How to search">
+    <p class="search-tips-title">How to search</p>
+    <ul>
+      <li>Start with the shortest real name, like <code>Phil McAndrew</code>.</li>
+      <li>Wrap it in <code>"quotes"</code> to keep only titles that include that name.</li>
+      <li>Add a track if you know one. Raise Check up to if the list is short — 50 is a good start.</li>
+    </ul>
+  </aside>
+
+  <div id="loading" class="loading-bar" role="status" aria-live="polite" aria-busy="false"><div class="spinner" aria-hidden="true"></div><span id="loading-text">Searching</span></div>
+  <div id="error" class="error-box" role="alert"></div>
+  <div id="results" class="results-area" aria-live="polite"></div>
 </div>
 
 <script>
@@ -369,9 +424,10 @@ const loadingEl=document.getElementById('loading'),loadingText=document.getEleme
 
 document.querySelectorAll('.nav-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false')});
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-pressed','true');
     document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
     errorEl.style.display='none';resultsEl.style.display='none';
   });
@@ -379,16 +435,17 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
 document.querySelectorAll('.sub-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const parent=btn.closest('.panel');
-    parent.querySelectorAll('.sub-btn').forEach(b=>b.classList.remove('active'));
+    parent.querySelectorAll('.sub-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false')});
     parent.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-pressed','true');
     parent.querySelector('#sub-'+btn.dataset.sub).classList.add('active');
     errorEl.style.display='none';resultsEl.style.display='none';
   });
 });
 
-function showLoading(msg){loadingText.textContent=msg;loadingEl.classList.add('visible')}
-function hideLoading(){loadingEl.classList.remove('visible')}
+function showLoading(msg){loadingText.textContent=msg;loadingEl.classList.add('visible');loadingEl.setAttribute('aria-busy','true')}
+function hideLoading(){loadingEl.classList.remove('visible');loadingEl.setAttribute('aria-busy','false')}
 function showError(msg){errorEl.textContent=msg;errorEl.style.display='block';resultsEl.style.display='none'}
 function hideError(){errorEl.style.display='none'}
 function esc(s){if(s==null)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -416,6 +473,7 @@ async function doSearch(url,body,btn,loadMsg,renderFn){
     if(!res.ok){showError(data.error||'Search failed');return}
     if(data.error){showError(data.error);return}
     renderFn(data);
+    if(resultsEl.style.display!=='none')resultsEl.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){showError(err.message||'Network error')}
   finally{hideLoading();btn.disabled=false}
 }
@@ -433,12 +491,14 @@ function renderResult(data){
   const eb=data.exact_match?'<span class="badge badge-exact">Exact</span>':'';
   const found=(data.all_checked_playlists&&data.all_checked_playlists.length)?data.all_checked_playlists:(data.playlists_with_music||[]);
   const mc=data.playlists_with_music?.length||0,uc=data.users?.length||0,tc=data.track_ids_count||data.track_infos?.length||0,ac=data.artist_ids_count||0;
-  const containLabel=data.playlist_contents_available===false?'not available':String(mc);
+  const nameHits=data.name_matches||found.filter(p=>p.name_match).length;
+  html+='<h2 class="results-title">'+found.length+' playlist'+(found.length===1?'':'s')+' for '+esc(data.query)+eb+'</h2>';
   html+='<div class="summary-card">';
-  html+='<div class="summary-row"><strong>Query:</strong> '+esc(data.query)+eb+'</div>';
-  html+='<div class="summary-row"><strong>Mode:</strong> '+esc(data.mode)+' &middot; <strong>Playlists found:</strong> '+found.length+' &middot; <strong>Containing your music:</strong> '+containLabel+'</div>';
-  html+='<div class="summary-row"><strong>Unique users:</strong> '+uc+' &middot; <strong>Tracks matched:</strong> '+tc+(ac?' &middot; <strong>Artists:</strong> '+ac:'')+'</div>';
-  if(data.playlist_contents_available===false)html+='<div class="summary-muted">Spotify did not return the songs inside these playlists, so every playlist from the search is listed.</div>';
+  if(data.exact_match)html+='<div class="summary-muted">Only titles that include this name. Raise Check up to if you expected more.</div>';
+  else if(found.length&&nameHits)html+='<div class="summary-muted">'+nameHits+' title'+(nameHits===1?'':'s')+' include this name. The rest are similar words. Add "quotes" to hide those.</div>';
+  else if(found.length)html+='<div class="summary-muted">None of these titles include that name. Spotify is matching similar words. Try "quotes", a shorter name, or a track.</div>';
+  if(found.length&&data.playlist_contents_available===false)html+='<div class="summary-muted">Songs inside these playlists could not be read.</div>';
+  else if(found.length&&data.playlist_contents_available!==false)html+='<div class="summary-row"><strong>'+mc+'</strong> contain your music'+(uc?' &middot; '+uc+' users':'')+(tc?' &middot; '+tc+' tracks':'')+'</div>';
   if(data.track_infos?.length){const tt=data.track_infos.slice(0,3).map(t=>t.name+(t.artists?' &mdash; '+t.artists:'')).join('; ');html+='<div class="summary-muted">Top tracks: '+esc(tt)+'</div>'}
   if(data.album_infos?.length){const ta=data.album_infos.slice(0,3).map(a=>a.name+(a.artist?' &mdash; '+a.artist:'')).join('; ');html+='<div class="summary-muted">Albums: '+esc(ta)+'</div>'}
   html+='</div>';
@@ -454,13 +514,13 @@ function renderResult(data){
       const names=p.tracks_found||[];
       const tr=names.slice(0,10).join(', '),ex=names.length>10?' +'+(names.length-10)+' more':'';
       const count=p.track_count!=null?' &middot; '+p.track_count+' tracks':'';
-      html+='<li class="result-card"><div class="r-title">'+esc(p.name)+'</div><div class="r-meta">Owner: '+esc(p.owner_display_name||'Unknown')+(p.owner_id?' ('+esc(p.owner_id)+')':'')+count+(p.owner_country?' &middot; '+esc(p.owner_country):'')+(p.owner_followers!=null?' &middot; '+p.owner_followers+' followers':'')+'</div>';
+      html+='<li class="result-card"><div class="r-title">'+esc(p.name)+(p.name_match?'<span class="badge badge-name">Name match</span>':'')+'</div><div class="r-meta">Owner: '+esc(p.owner_display_name||'Unknown')+(p.owner_id?' ('+esc(p.owner_id)+')':'')+count+(p.owner_country?' &middot; '+esc(p.owner_country):'')+(p.owner_followers!=null?' &middot; '+p.owner_followers+' followers':'')+'</div>';
       if(tr)html+='<div class="r-match">'+esc(tr)+ex+'</div>';
       html+='<a href="'+esc(p.url)+'" target="_blank" rel="noopener">Open playlist</a></li>';
     });
     html+='</ul></div>';
   }
-  if(!found.length&&!uc){html+='<p class="empty-state">No playlists found. Try increasing max playlists or searching by a different method.</p>'}
+  if(!found.length&&!uc){html+='<p class="empty-state">'+(data.exact_match?'No playlist titles include that name. Try it without quotes, or raise Check up to.':'No playlists found. Try a shorter name, add "quotes" around the exact name, or raise Check up to.')+'</p>'}
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }
 
@@ -487,7 +547,7 @@ function renderYT(data){
       html+='<div style="margin-top:.35rem"><a href="'+esc(v.url)+'" target="_blank" rel="noopener">Watch on YouTube</a></div></div></div></li>';
     });
     html+='</ul></div>';
-  }else{html+='<p class="empty-state">No videos found for this query.</p>'}
+  }else{html+='<p class="empty-state">No videos found. Try the artist name on its own, or fewer words from the title.</p>'}
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }
 
@@ -524,7 +584,7 @@ function renderDeep(data){
   html+=renderSec('Web / discussions',data.general_results,'web');
   html+=renderSec('Internet Archive',data.archive_results,'archive_org');
   html+=renderSec('Wayback Machine',data.wayback_results,'wayback');
-  if(!total)html+='<p class="empty-state">No results found. Try a broader query.</p>';
+  if(!total)html+='<p class="empty-state">No results found. Try a shorter phrase, or remove quotes if you searched for an exact match.</p>';
   if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }
@@ -555,7 +615,7 @@ function renderSocial(data){
         html+='<div style="margin-top:.3rem"><a href="'+esc(item.url)+'" target="_blank" rel="noopener">'+esc(item.url)+'</a></div></li>';
       });
       html+='</ul>';
-    }else{html+='<p class="empty-state">No results on '+esc(p.label)+'.</p>'}
+    }else{html+='<p class="empty-state">No results on '+esc(p.label)+'. Try the name without quotes.</p>'}
     html+='</div>';
   });
   if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
@@ -590,7 +650,7 @@ function renderIntl(data){
         html+='<div style="margin-top:.3rem"><a href="'+esc(item.url)+'" target="_blank" rel="noopener">'+esc(item.url)+'</a></div></li>';
       });
       html+='</ul>';
-    }else{html+='<p class="empty-state">No results for this region.</p>'}
+    }else{html+='<p class="empty-state">No results for this region. Try the artist name on its own.</p>'}
     html+='</div>';
   });
   if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
@@ -626,7 +686,7 @@ function renderGlobal(data){
 
   function renderSourceSection(title,sources,bucketData,badgeClass){
     const items=[];sources.forEach(s=>{(bucketData[s.key]||[]).forEach(r=>{r._badge=s.badge;r._src=s.key;items.push(r)})});
-    if(!items.length)return'<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">0</span></div><p class="empty-state">No results from these sources.</p></div>';
+    if(!items.length)return'<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">0</span></div><p class="empty-state">No results from these sources. Try a shorter query.</p></div>';
     let s='<div class="section-block"><div class="section-head">'+esc(title)+' <span class="pill">'+items.length+'</span></div><ul class="card-list">';
     items.forEach(r=>{
       const badge='<span class="badge badge-'+r._badge+'">'+esc(r._src)+'</span> ';
@@ -643,7 +703,7 @@ function renderGlobal(data){
 
   html+=renderSourceSection('Search Engines',GLOBAL_ENGINES,data.search_engines||{},'engine');
   html+=renderSourceSection('Web Crawlers',GLOBAL_CRAWLERS,data.crawlers||{},'crawler');
-  if(!data.total)html+='<p class="empty-state">No results found. Try a broader query.</p>';
+  if(!data.total)html+='<p class="empty-state">No results found. Try a shorter phrase, or remove quotes if you searched for an exact match.</p>';
   if(data.errors?.length)html+='<div class="r-meta" style="margin-top:1rem">Errors: '+data.errors.map(esc).join('; ')+'</div>';
   resultsEl.innerHTML=html;resultsEl.style.display='block';
 }

@@ -9,6 +9,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
+from query_parse import parse_quoted as _parse_quoted
+
 FORUM_SITES = [
     "reddit.com",
     "last.fm",
@@ -30,14 +32,6 @@ FORUM_SITES = [
 
 WAYBACK_CDX = "https://web.archive.org/cdx/search/cdx"
 ARCHIVE_SEARCH = "https://archive.org/advancedsearch.php"
-
-
-def _parse_quoted(s: str) -> tuple[str, bool]:
-    """If wrapped in double quotes, return (inner, True) for exact match."""
-    s = (s or "").strip()
-    if len(s) >= 2 and s.startswith('"') and s.endswith('"'):
-        return s[1:-1].strip(), True
-    return s, False
 
 
 def run_deep_search(query: str, max_results: int = 25) -> dict[str, Any]:

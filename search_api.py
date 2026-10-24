@@ -60,12 +60,13 @@ def run_artist_search(
     search_queries = [artist_name]
     try:
         playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
-            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
+            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile, exact_phrase
         )
     except Exception as e:
         return {"error": str(e)}
 
     users = _users_from_playlists(playlists_with_music)
+    name_matches = sum(1 for p in all_checked if p.get("name_match"))
     out = {
         "mode": "artist",
         "query": artist_input,
@@ -76,6 +77,7 @@ def run_artist_search(
         "playlists_with_music": playlists_with_music,
         "all_checked_playlists": all_checked,
         "playlist_contents_available": contents_available,
+        "name_matches": name_matches,
         "users": users,
         "track_infos": [],
         "album_infos": [],
@@ -122,7 +124,7 @@ def run_song_search(
 
     try:
         playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
-            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
+            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile, exact_phrase
         )
     except Exception as e:
         return {"error": str(e)}
@@ -138,6 +140,7 @@ def run_song_search(
         "playlists_with_music": playlists_with_music,
         "all_checked_playlists": all_checked,
         "playlist_contents_available": contents_available,
+        "name_matches": sum(1 for p in all_checked if p.get("name_match")),
         "users": users,
     }
     return out
@@ -182,7 +185,7 @@ def run_album_search(
 
     try:
         playlists_checked, playlists_with_music, all_checked, contents_available = _search_playlists_for_queries(
-            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile
+            client, search_queries, track_ids, artist_ids, max_playlists, "US", show_owner_profile, exact_phrase
         )
     except Exception as e:
         return {"error": str(e)}
@@ -198,6 +201,7 @@ def run_album_search(
         "playlists_with_music": playlists_with_music,
         "all_checked_playlists": all_checked,
         "playlist_contents_available": contents_available,
+        "name_matches": sum(1 for p in all_checked if p.get("name_match")),
         "users": users,
     }
     return out
