@@ -1,0 +1,11 @@
+{
+  "name": "Spotify Playlist Finder",
+  "install": "sudo DEBIAN_FRONTEND=noninteractive apt-get update\nsudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3.12-venv\npython3 -m venv .venv\n.venv/bin/pip install -r requirements.txt\n",
+  "start": "if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:5000/; then\n  echo \"Flask app already listening on port 5000\"\n  exit 0\nfi\nexec .venv/bin/python app.py\n",
+  "ports": [
+    {
+      "name": "web",
+      "port": 5000
+    }
+  ]
+}
